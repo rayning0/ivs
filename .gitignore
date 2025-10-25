@@ -1,0 +1,7 @@
+data/
+full_videos/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+gunicorn
+sentence-transformers
+torch
+pillow
+opencv-python
+scenedetect
+python-multipart
+faiss-cpu
