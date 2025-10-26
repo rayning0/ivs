@@ -8,3 +8,4 @@ opencv-python
 scenedetect
 python-multipart
 faiss-cpu
+faster-whisper
