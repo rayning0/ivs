@@ -77,6 +77,17 @@ if st.button("Search"):
             secs = int(seconds % 60)
             return f"{minutes:02d}:{secs:02d}"
 
+        # Create video player with timestamp
+        video_path = item.get("video_path", f"~/ivs/data/videos/{item['video_id']}.mp4")
+        expanded_path = os.path.expanduser(video_path)
+
+        # Convert absolute path to relative path for Streamlit
+        if expanded_path.startswith(os.path.expanduser("~/ivs/data/")):
+            relative_path = expanded_path.replace(os.path.expanduser("~/ivs/data/"), "")
+            video_url = f"{API}/static/{relative_path}"
+        else:
+            video_url = f"file://{expanded_path}"
+
         if item.get("thumb_url"):
             # Show thumbnail with fallback
             try:
@@ -87,15 +98,21 @@ if st.button("Search"):
                     f"[{format_timestamp(item['start'])}–{format_timestamp(item['end'])}]  "
                     f"score={item['final']:.3f}",
                 )
+                # Add video player with timestamp
+                st.video(video_url, start_time=int(item["start"]))
             except Exception as e:
                 # If thumbnail fails to load, show text version with debug info
                 st.write(
                     f"**{item['video_id']}** [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - Thumbnail error: {str(e)[:50]}... (score={item['final']:.3f})"
                 )
+                # Add video player with timestamp
+                st.video(video_url, start_time=int(item["start"]))
         else:
             st.write(
                 f"**{item['video_id']}** [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - {item.get('text', '')[:100]}... (score={item['final']:.3f})"
             )
+            # Add video player with timestamp
+            st.video(video_url, start_time=int(item["start"]))
 
 # Data Management Section
 with st.expander("🗑️ Data Management", expanded=False):
