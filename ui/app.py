@@ -1,3 +1,4 @@
+import glob
 import os
 
 import requests
@@ -58,3 +59,57 @@ if st.button("Search"):
             st.write(
                 f"**{item['video_id']}** [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - {item.get('text', '')[:100]}... (score={item['final']:.3f})"
             )
+
+# Data Management Section
+with st.expander("🗑️ Data Management", expanded=False):
+    st.warning("⚠️ This will delete ALL processed data!")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("🗑️ Delete All Data", type="secondary"):
+            data_dir = os.path.expanduser("~/ivs/data")
+            deleted_files = []
+
+            # Delete all .jpg files in thumbs directory
+            thumb_files = glob.glob(os.path.join(data_dir, "thumbs", "*.jpg"))
+            for file in thumb_files:
+                try:
+                    os.remove(file)
+                    deleted_files.append(os.path.basename(file))
+                except Exception as e:
+                    st.error(f"Failed to delete {file}: {e}")
+
+            # Delete all .jsonl and .faiss files in data directory
+            data_files = glob.glob(os.path.join(data_dir, "*.jsonl")) + glob.glob(
+                os.path.join(data_dir, "*.faiss")
+            )
+            for file in data_files:
+                try:
+                    os.remove(file)
+                    deleted_files.append(os.path.basename(file))
+                except Exception as e:
+                    st.error(f"Failed to delete {file}: {e}")
+
+            if deleted_files:
+                st.success(f"✅ Deleted {len(deleted_files)} files:")
+                for file in deleted_files[:10]:  # Show first 10 files
+                    st.write(f"  • {file}")
+                if len(deleted_files) > 10:
+                    st.write(f"  • ... and {len(deleted_files) - 10} more files")
+            else:
+                st.info("No files found to delete.")
+
+    with col2:
+        st.info(
+            """
+        **What gets deleted:**
+        - All thumbnail images (*.jpg)
+        - Search indexes (*.faiss)
+        - Metadata files (*.jsonl)
+
+        **What stays:**
+        - Video files in /videos/
+        - Directory structure
+        """
+        )
