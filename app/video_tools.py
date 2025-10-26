@@ -47,8 +47,6 @@ def extract_midframe(video_path, start, end, out_dir="../data/thumbs"):
                     "1",
                     "-q:v",
                     "2",
-                    "-vf",
-                    "scale=320:240",  # Resize to standard thumbnail size
                     out,
                 ],
                 check=True,
