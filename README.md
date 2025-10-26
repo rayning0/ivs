@@ -1,14 +1,18 @@
 # In-Video Search System
+### by Raymond Gan
 
-A semantic video search system that allows you to find specific moments in videos using natural language queries. Built for hackathon demonstration with FastAPI backend and Streamlit frontend.
+A semantic video search system to let you find and play specific moments in videos with natural language queries. You may search by dialogue, descriptions, people, objects, or scenes. Built for Tubi's hackathon with FastAPI backend and Streamlit frontend. I used these AI models: OpenAI [CLIP](https://openai.com/index/clip/) for images, OpenAI [Whisper](https://openai.com/index/whisper/) for speech recognition, and [FAISS (Facebook AI Similarity Search)](https://www.pinecone.io/learn/series/faiss/faiss-tutorial/) for vector embeddings.
 
 ## Features
 
 - 🎬 **Automatic Scene Detection**: Intelligently detects scene changes in videos
-- 🖼️ **Thumbnail Extraction**: Extracts representative frames from each scene
-- 🔍 **Semantic Search**: Search videos using natural language descriptions
+- 🖼️ **Multi-Frame Pooling**: Netflix-style shot representation using 3 frames per scene
+- 🔍 **Dual-Modal Search**: Search by both visual content and spoken dialogue
 - ⏱️ **Precise Timestamps**: Jump directly to relevant moments with exact timing
-- 🚀 **Real-time Processing**: Fast video processing and indexing pipeline
+- 🎥 **Inline Video Player**: Play videos directly in browser at exact timestamps
+- 🎛️ **Search Balance Control**: Adjustable alpha slider to pick importance of search by images vs dialogue
+- 🚀 **Real-time Processing**: Fast video processing + indexing pipeline. Can run either locally on laptop or, for speed, on virtual machine with a GPU. I ran my demo on a Nebius virtual machine using [Nvidia H200 NVLink with Intel Sapphire Rapids](https://nebius.com/h200), on Ubuntu 22.04 (CUDA 12).
+- 🧹 **Data Management**: Tools to clear processed data and restart
 
 ## Architecture
 
@@ -23,7 +27,7 @@ A semantic video search system that allows you to find specific moments in video
          │                        ▼                        │
          │              ┌─────────────────┐                │
          │              │   AI Models     │                │
-         │              │   (CLIP)        │                │
+         │              OpenAI CLIP/Whisper                │
          │              └─────────────────┘                │
          │                        │                        │
          ▼                        ▼                        ▼
@@ -36,14 +40,16 @@ A semantic video search system that allows you to find specific moments in video
 ### Core Components
 
 #### Backend API (`/app/`)
-- **FastAPI Application** (`app.py`): REST API endpoints for video processing and search
-- **Video Processing** (`video_tools.py`): Scene detection using PySceneDetect and FFmpeg
-- **AI Models** (`models.py`): CLIP-based text and image embeddings
-- **Vector Search** (`index.py`): FAISS-based similarity search
-- **Data Storage** (`store.py`): JSONL-based metadata persistence
+- **FastAPI Application** ([`app.py`](https://github.com/rayning0/ivs/blob/main/app/app.py)): REST API endpoints for video processing and search
+- **Video Processing** ([`video_tools.py`](https://github.com/rayning0/ivs/blob/main/app/video_tools.py)): Scene detection using PySceneDetect and FFmpeg
+- **AI Models** ([`models.py`](https://github.com/rayning0/ivs/blob/main/app/models.py)): OpenAI speech (Whisper) and image embeddings (CLIP)
+- **Vector Search** ([`index.py`](https://github.com/rayning0/ivs/blob/main/app/index.py)): FAISS = Facebook AI Similarity Search
+- **Data Storage** ([`store.py`](https://github.com/rayning0/ivs/blob/main/app/store.py)): JSONL-based metadata persistence
+- **Transcript Search** ([`subs_index.py`](https://github.com/rayning0/ivs/blob/main/app/subs_index.py)): FAISS vector search for transcript embeddings
+- **Speech Recognition** ([`asr.py`](https://github.com/rayning0/ivs/blob/main/app/asr.py)): Automatic Speech Recognition using [`faster-whisper`](https://github.com/SYSTRAN/faster-whisper)
 
 #### Frontend UI (`/ui/`)
-- **Streamlit Interface** (`app.py`): Web-based user interface for video upload and search
+- **Streamlit Interface** ([`app.py`](https://github.com/rayning0/ivs/blob/main/ui/app.py)): Web-based user interface for video upload and search
 - **Real-time Results**: Displays search results with thumbnails and timestamps
 
 ## Tech Stack
@@ -52,10 +58,12 @@ A semantic video search system that allows you to find specific moments in video
 - **FastAPI**: Modern, fast web framework for building APIs
 - **Uvicorn**: ASGI server for FastAPI applications
 - **PySceneDetect**: Automatic scene change detection in videos
-- **FFmpeg**: Video processing and thumbnail extraction
+- **FFmpeg**: Video processing and multi-frame extraction
 - **Sentence Transformers**: CLIP model for semantic embeddings
 - **FAISS**: Facebook AI Similarity Search for vector operations
+- **Faster-Whisper**: Automatic Speech Recognition (ASR) for transcript generation
 - **PIL (Pillow)**: Image processing and manipulation
+- **NumPy**: Multi-frame embedding averaging
 
 ### Frontend Technologies
 - **Streamlit**: Rapid web app development framework
@@ -66,31 +74,37 @@ A semantic video search system that allows you to find specific moments in video
   - Model: `clip-ViT-B-32`
   - Handles both text queries and image embeddings
   - Enables semantic similarity between text and images
+- **Multi-Frame Pooling**: Averages embeddings from 3 frames per shot for better representation
+- **Faster-Whisper ASR**: Automatic speech recognition for transcript generation
 - **Vector Embeddings**: 512-dimensional embeddings for similarity search
 - **Scene Detection**: Content-based scene change detection with configurable thresholds
+- **Dual-Modal Search**: Fuses vision and transcript search with adjustable weights
 
 ### Data Storage
-- **Thumbnails**: JPG files stored in `/data/thumbs/`
-- **Metadata**: JSONL format in `/data/shots_meta.jsonl`
-- **Vector Index**: FAISS index file `/data/shots.faiss`
+- **Multi-Frame Thumbnails**: JPG files stored in `/data/thumbs/` (3 per shot)
+- **Vision Metadata**: JSONL format in `/data/shots_meta.jsonl`
+- **Vision Vector Index**: FAISS index file `/data/shots.faiss`
+- **Transcript Metadata**: JSONL format in `/data/subs_meta.jsonl`
+- **Transcript Vector Index**: FAISS index file `/data/subs.faiss`
 - **Static Files**: Served via FastAPI static file mounting
 
 ## API Endpoints
 
 ### Video Processing
-- `POST /process_video`: Process a video file and extract scene thumbnails
+- `POST /process_video`: Process a video file with multi-frame pooling and ASR
   - Parameters: `video_path`, `video_id`, `scene_threshold`
-  - Returns: Number of scenes detected and processed
+  - Returns: Number of shots detected, frames processed, and transcript segments
 
 ### Search
-- `POST /search`: Search for video content using text queries
-  - Parameters: `query`, `k` (number of results)
-  - Returns: Ranked list of matching video segments with timestamps
+- `POST /search`: Dual-modal search for video content using text queries
+  - Parameters: `query`, `k` (number of results), `alpha` (vision vs transcript weight)
+  - Returns: Ranked list of matching video segments with timestamps and relevance scores
+  - Alpha: 0.0 = transcript only, 1.0 = vision only, 0.6 = balanced (default)
 
 ## Installation & Setup
 
 ### Prerequisites
-- Python 3.14+
+- Python 3.13 (required for `faster-whisper` compatibility)
 - FFmpeg installed and available in PATH
 - Virtual environment (recommended)
 
@@ -105,54 +119,106 @@ pip install -r requirements.txt
 ```bash
 cd ui
 pip install -r requirements.txt
-streamlit run app.py  # Starts UI on port 8501
+./run.sh  # Starts Streamlit UI on port 8501
 ```
 
 ## Usage
 
-1. **Start Backend**: Run the FastAPI server (`./run.sh` in `/app/`)
-2. **Start Frontend**: Run Streamlit UI (`streamlit run app.py` in `/ui/`)
-3. **Process Video**: Upload a video file and set scene detection threshold
-4. **Search Content**: Use natural language to find specific moments
-5. **View Results**: Browse thumbnails with timestamps and relevance scores
+1. **Start Backend**: Run the FastAPI server ([`./run.sh`](https://github.com/rayning0/ivs/blob/main/app/run.sh) in `/app/`)
+2. **Start Frontend**: Run Streamlit UI ([`./run.sh`](https://github.com/rayning0/ivs/blob/main/ui/run.sh) in `/ui/`)
+3. **Process Video**:
+   - Enter video path (auto-generates video ID from filename)
+   - Adjust scene detection threshold (20-40, default 27)
+   - Click "Process" to extract multi-frame thumbnails and transcripts
+4. **Search Content**:
+   - Enter natural language queries
+   - Adjust search balance (alpha slider: 0.0 = dialogue, 1.0 = images, 0.6 = balanced)
+   - Set number of results (K slider)
+5. **View Results**:
+   - Browse thumbnails and transcript snippets
+   - Click video players to play at exact timestamps
+   - Use data management tools to delete processed data
 
 ## Example Queries
 
+### Visual Queries (Alpha = 1.0)
 - "person talking in office"
 - "outdoor scene with trees"
 - "close-up shot of hands"
-- "indoor setting with furniture"
-- "person walking down hallway"
+- "trying on shoes"
+- "old woman falling down stairs"
+
+### Dialogue Queries (Alpha = 0.0)
+- "Hello I.T."
+- "Have you tried turning it off and on again?"
+- "emergency services"
+- "stress is a disease"
+- "I am declaring war"
+
+### Mixed Queries (Alpha = 0.6)
+- "man in suit talking"
+- "person saying hello"
+- "office conversation"
+- "stress management"
 
 ## File Structure
 
 ```
 ivs/
 ├── app/                    # Backend API
-│   ├── app.py             # FastAPI application
-│   ├── models.py          # AI/ML models (CLIP)
-│   ├── video_tools.py     # Video processing
-│   ├── index.py           # Vector search (FAISS)
+│   ├── app.py             # FastAPI application with dual-modal search
+│   ├── models.py          # AI/ML models (OpenAI CLIP)
+│   ├── video_tools.py     # Video processing with multi-frame pooling
+│   ├── index.py           # Vision vector search (FAISS)
+│   ├── subs_index.py      # Transcript vector search (FAISS)
+│   ├── asr.py             # Automatic Speech Recognition (OpenAI faster-whisper)
 │   ├── store.py           # Metadata storage
 │   ├── requirements.txt   # Backend dependencies
-│   └── run.sh             # Server startup script
+│   └── run.sh             # Server startup script with process cleanup
 ├── ui/                     # Frontend UI
-│   ├── app.py             # Streamlit interface
-│   └── requirements.txt   # Frontend dependencies
+│   ├── app.py             # Streamlit interface with video players
+│   ├── requirements.txt   # Frontend dependencies
+│   └── run.sh             # Frontend startup script
 ├── data/                   # Generated data (excluded from git)
-│   ├── thumbs/            # Extracted thumbnails
-│   ├── shots_meta.jsonl   # Scene metadata
-│   └── shots.faiss        # Vector index
-└── full_videos/           # Source videos (excluded from git)
+│   ├── thumbs/            # Multi-frame thumbnails (3 per shot)
+│   ├── videos/            # Source video files
+│   ├── shots_meta.jsonl   # Vision metadata
+│   ├── shots.faiss        # Vision vector index
+│   ├── subs_meta.jsonl    # Transcript metadata
+│   └── subs.faiss         # Transcript vector index
+└── full_videos/           # Additional videos (excluded from git)
 ```
 
 ## Performance Notes
 
 - **Scene Detection**: Configurable threshold (20-40) for sensitivity
-- **Processing Speed**: ~10-30 scenes per minute depending on video complexity
-- **Search Speed**: Sub-second response for semantic queries
+- **Multi-Frame Processing**: 3x slower than single-frame (3 frames per shot)
+- **ASR Processing**: ~1-2x real-time depending on hardware (CUDA recommended)
+- **Search Speed**: Sub-second response for dual-modal semantic queries
 - **Memory Usage**: CLIP model requires ~2GB RAM for embeddings
-- **Storage**: ~50-100KB per thumbnail + metadata per scene
+- **Storage**: ~150-300KB per shot (3 thumbnails + metadata)
+- **Video Player**: Streamlit video component with automatic timestamp seeking
+
+## Recent Updates
+
+### Multi-Frame Pooling (Netflix-style)
+- **3 frames per shot** for better representation
+- **Averaged embeddings** capture shot dynamics
+- **Significantly improved** search accuracy
+- **3x storage cost** but much better results
+
+### Dual-Modal Search
+- **Vision search**: CLIP text→image similarity
+- **Transcript search**: CLIP text→text similarity
+- **Adjustable fusion**: Alpha slider controls balance
+- **ASR integration**: Automatic speech recognition
+
+### Enhanced UI
+- **Inline video players** with timestamp seeking
+- **Auto-generated video IDs** from filenames
+- **Search balance controls** (alpha slider)
+- **Data management tools** for cleanup
+- **Accessibility improvements** (proper labels)
 
 ## Development
 
@@ -161,3 +227,4 @@ Built for hackathon demonstration with focus on:
 - Clear separation of concerns (API + UI)
 - Scalable architecture for future enhancements
 - Easy deployment and setup
+- Production-ready features (multi-frame pooling, dual-modal search)
