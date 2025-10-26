@@ -6,28 +6,47 @@ import streamlit as st
 
 API = "http://localhost:8000"
 
-st.title("In-Video Search (Mac Demo)")
+st.title("In-Video Search")
+st.write("by Raymond Gan, 10/27/2025")
 
 with st.expander("Process a video"):
     default_video_path = os.path.expanduser("~/ivs/data/videos/test2.mp4")
     vp = st.text_input("Video path (on this machine)", default_video_path)
-    vid = st.text_input("Video ID", "sample")
-    thr = st.slider("Scene threshold", 20, 40, 27)
+
+    # Extract filename as video ID from path
+    video_filename = os.path.basename(vp)
+    video_id = os.path.splitext(video_filename)[0]  # Remove .mp4 extension
+
+    st.write("**Scene Detection Threshold:**")
+    st.caption("20-25 = Very Sensitive (many short scenes)")
+    st.caption("26-30 = Balanced (1 new scene every few seconds)")
+    st.caption("31-35 = Less Sensitive (fewer, longer scenes)")
+    thr = st.slider("Threshold", 20, 40, 27, label_visibility="collapsed")
     if st.button("Process"):
         r = requests.post(
             f"{API}/process_video",
-            data={"video_path": vp, "video_id": vid, "scene_threshold": thr},
+            data={"video_path": vp, "video_id": video_id, "scene_threshold": thr},
         )
-        st.write(f"Status: {r.status_code}")
-        st.write(f"Response: {r.text}")
         if r.status_code == 200:
             try:
-                st.write(r.json())
+                result = r.json()
+                st.success(f"✅ Processing complete!")
+                st.write(f"**Shots detected:** {result.get('shots', 0)}")
+                st.write(
+                    f"**Transcript segments:** {result.get('transcript_segments', 0)}"
+                )
             except Exception:
-                st.write("Could not parse JSON response")
+                st.error("Could not parse response")
+        else:
+            st.error(f"❌ Processing failed (Status: {r.status_code})")
+            st.write(f"Error: {r.text}")
 
-query = st.text_input("Query", "man in suit")
-k = st.slider("Top K", 1, 20, 8)
+query = st.text_input(
+    "**Find (dialogue, description, person, object, scene):**", "man in suit"
+)
+st.write("**Top K Nearest Neighbors:**")
+st.caption("Lower = Fewer, better search results | Higher = More, worse search results")
+k = st.slider("Number of results", 1, 20, 8, label_visibility="collapsed")
 
 if st.button("Search"):
     r = requests.post(f"{API}/search", data={"query": query, "k": k}).json()
