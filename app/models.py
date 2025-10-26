@@ -23,7 +23,7 @@ def embed_text(texts, batch_size=64):
     )
 
 
-def embed_images(pil_images, batch_size=16):
+def embed_images(pil_images, batch_size=32):
     return img_model.encode(
         pil_images,
         convert_to_numpy=True,
