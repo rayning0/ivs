@@ -44,12 +44,27 @@ with st.expander("Process a video"):
 query = st.text_input(
     "**Find (dialogue, description, person, object, scene):**", "man in suit"
 )
-st.write("**Top K Nearest Neighbors:**")
-st.caption("Lower = Fewer, better search results | Higher = More, worse search results")
-k = st.slider("Number of results", 1, 20, 8, label_visibility="collapsed")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("**Top K Nearest Neighbors:**")
+    st.caption("Lower = Fewer, better search results")
+    st.caption("Higher = More, poorer search results")
+    k = st.slider("Number of results", 1, 20, 8, label_visibility="collapsed")
+
+with col2:
+    st.write("**Search Importance (Images vs Dialogue):**")
+    st.caption("0.0 = Dialogue only")
+    st.caption("0.6 = Balanced: 60% images, 40% dialogue")
+    st.caption("1.0 = Images only")
+
+    alpha = st.slider("Alpha", 0.0, 1.0, 0.6, 0.1, label_visibility="collapsed")
 
 if st.button("Search"):
-    r = requests.post(f"{API}/search", data={"query": query, "k": k}).json()
+    r = requests.post(
+        f"{API}/search", data={"query": query, "k": k, "alpha": alpha}
+    ).json()
     if not r.get("results"):
         st.info("No results yet. Make sure you processed at least one video.")
     for item in r.get("results", []):
