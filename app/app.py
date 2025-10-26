@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 from asr import transcribe_to_segments
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -17,7 +18,7 @@ from subs_index import load_index as load_subs_index
 from subs_index import load_meta_all as load_subs_meta
 from subs_index import save_index as save_subs_index
 from subs_index import search_vector as search_subs
-from video_tools import detect_scenes, extract_midframe
+from video_tools import detect_scenes, extract_midframe, extract_multiframes
 
 app = FastAPI()
 
@@ -44,27 +45,60 @@ def process_video(
     assert os.path.exists(video_path), f"Video not found: {video_path}"
 
     try:
-        # ----- 1) SHOTS → image embeddings -----
+        # ----- 1) SHOTS → multi-frame pooled image embeddings -----
         scenes = detect_scenes(video_path, threshold=scene_threshold)
-        thumbs, metas = [], []
-        for s, e in scenes:
-            thumb, mid = extract_midframe(video_path, s, e)
-            thumbs.append(thumb)
-            metas.append(
-                {
-                    "video_id": video_id,
-                    "video_path": video_path,
-                    "start": s,
-                    "end": e,
-                    "mid": mid,
-                    "thumb_rel": os.path.relpath(thumb, "../data"),
-                }
-            )
+        shot_embeddings, metas = [], []
 
-        if thumbs:
-            images = [Image.open(p).convert("RGB") for p in thumbs]
-            vecs = embed_images(images)
-            add_img_vectors(vecs)
+        for s, e in scenes:
+            # Extract multiple frames per shot for better representation
+            frames = extract_multiframes(video_path, s, e, num_frames=3)
+
+            if frames:
+                # Load and process all frames for this shot
+                frame_images = []
+                frame_paths = []
+                for frame_path, frame_time in frames:
+                    try:
+                        img = Image.open(frame_path).convert("RGB")
+                        frame_images.append(img)
+                        frame_paths.append(frame_path)
+                    except Exception as e:
+                        print(f"Warning: Could not load frame {frame_path}: {e}")
+                        continue
+
+                if frame_images:
+                    # Get embeddings for all frames in this shot
+                    frame_embeddings = embed_images(frame_images)
+
+                    # Average the embeddings (multi-frame pooling)
+                    pooled_embedding = np.mean(frame_embeddings, axis=0)
+                    shot_embeddings.append(pooled_embedding)
+
+                    # Use the middle frame as the representative thumbnail
+                    mid = s + (e - s) / 2.0
+                    representative_thumb = frame_paths[
+                        len(frame_paths) // 2
+                    ]  # Middle frame
+
+                    metas.append(
+                        {
+                            "video_id": video_id,
+                            "video_path": video_path,
+                            "start": s,
+                            "end": e,
+                            "mid": mid,
+                            "thumb_rel": os.path.relpath(
+                                representative_thumb, "../data"
+                            ),
+                            "num_frames": len(
+                                frame_images
+                            ),  # Track how many frames were pooled
+                        }
+                    )
+
+        if shot_embeddings:
+            # Add the pooled embeddings to the index
+            add_img_vectors(shot_embeddings)
             save_img_index()
             for m in metas:
                 append(m)
@@ -92,7 +126,12 @@ def process_video(
         except Exception:
             transcribed = 0
 
-        return {"shots": len(metas), "transcript_segments": transcribed}
+        total_frames = sum(m.get("num_frames", 1) for m in metas)
+        return {
+            "shots": len(metas),
+            "transcript_segments": transcribed,
+            "total_frames_processed": total_frames,
+        }
     except Exception as e:
         print(f"Error processing video: {e}")
         raise HTTPException(

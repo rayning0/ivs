@@ -33,6 +33,9 @@ with st.expander("Process a video"):
                 st.success(f"✅ Processing complete!")
                 st.write(f"**Shots detected:** {result.get('shots', 0)}")
                 st.write(
+                    f"**Frames processed:** {result.get('total_frames_processed', 0)} (3 per shot)"
+                )
+                st.write(
                     f"**Transcript segments:** {result.get('transcript_segments', 0)}"
                 )
             except Exception:
