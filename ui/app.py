@@ -111,7 +111,7 @@ if st.button("Search"):
             # Optionally show thumbnail if available
             if item.get("thumb_url"):
                 try:
-                    st.image(f"{API}{item['thumb_url']}", width=200)
+                    st.image(f"{API}{item['thumb_url']}")
                 except Exception:
                     pass  # Ignore thumbnail errors for exact matches
         elif item.get("thumb_url"):
@@ -119,7 +119,6 @@ if st.button("Search"):
             try:
                 st.image(
                     f"{API}{item['thumb_url']}",
-                    width=280,
                     caption=f"{item['video_id']}  "
                     f"[{format_timestamp(item['start'])}–{format_timestamp(item['end'])}]  "
                     f"score={item['final']:.3f}",
