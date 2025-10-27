@@ -86,7 +86,24 @@ if st.button("Search"):
         else:
             video_url = f"file://{expanded_path}"
 
-        if item.get("thumb_url"):
+        # For exact matches, always show video player prominently
+        if item.get("exact_match"):
+            st.write(
+                f"🎯 **EXACT MATCH:** {item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}]"
+            )
+            st.write(f"**Quote:** \"{item.get('text', '')}\"")
+            st.write(f"**Score:** {item['final']:.3f}")
+
+            # Always show video player for exact matches
+            st.video(video_url, start_time=int(item["start"]))
+
+            # Optionally show thumbnail if available
+            if item.get("thumb_url"):
+                try:
+                    st.image(f"{API}{item['thumb_url']}", width=200)
+                except Exception:
+                    pass  # Ignore thumbnail errors for exact matches
+        elif item.get("thumb_url"):
             # Show thumbnail with fallback
             try:
                 st.image(

@@ -174,13 +174,37 @@ def search(query: str = Form(...), k: int = Form(8), alpha: float = Form(0.6)):
     sub_idx, sub_scores = search_subs(qvec, k)
     subs_meta = load_subs_meta()
     sub_results = []
+    exact_matches = []
+
+    # Check for exact quote matches first
+    import re
+
+    query_lower = query.lower().strip()
+    # Remove punctuation for comparison
+    query_clean = re.sub(r"[^\w\s]", "", query_lower)
+    print(f"🔍 Searching for exact match: '{query_lower}' (clean: '{query_clean}')")
+    for meta in subs_meta:
+        text_lower = meta.get("text", "").lower().strip()
+        text_clean = re.sub(r"[^\w\s]", "", text_lower)
+        if query_clean == text_clean:
+            m = meta.copy()
+            m["score_t"] = 1.0  # Perfect score for exact match
+            m["type"] = "subtitle"
+            m["thumb_url"] = None
+            m["exact_match"] = True
+            exact_matches.append(m)
+            print(f"🎯 Found exact match: '{query_clean}' -> '{text_clean}'")
+        elif query_clean in text_clean:
+            print(f"🔍 Partial match found: '{query_clean}' in '{text_clean}'")
+
+    # Add regular CLIP-based subtitle results
     for i, s in zip(sub_idx, sub_scores):
         if 0 <= i < len(subs_meta):
             m = subs_meta[i].copy()
             m["score_t"] = float(s)
             m["type"] = "subtitle"
-            # thumb is optional for subtitle hits
             m["thumb_url"] = None
+            m["exact_match"] = False
             sub_results.append(m)
 
     # Normalize & fuse
@@ -195,19 +219,36 @@ def search(query: str = Form(...), k: int = Form(8), alpha: float = Form(0.6)):
     for r in vid_results:
         r["final"] = alpha * r.get("norm_v", 0.0) + (1 - alpha) * 0.0
         fused.append(r)
+
+    # Add exact matches first (highest priority)
+    for r in exact_matches:
+        r["final"] = 1.0  # Maximum score for exact matches
+        fused.append(r)
+
+    # Add regular subtitle results
     for r in sub_results:
         r["final"] = alpha * 0.0 + (1 - alpha) * r.get("norm_t", 0.0)
         fused.append(r)
 
-    # Deduplicate results by video_id and time range
+    # Deduplicate results by video_id and time range, prioritizing exact matches
     seen = set()
     deduplicated = []
+
+    # First pass: add exact matches (they get priority)
     for r in fused:
-        # Create a unique key based on video_id, start, and end times
-        key = (r.get("video_id", ""), r.get("start", 0), r.get("end", 0))
-        if key not in seen:
-            seen.add(key)
-            deduplicated.append(r)
+        if r.get("exact_match"):
+            key = (r.get("video_id", ""), r.get("start", 0), r.get("end", 0))
+            if key not in seen:
+                seen.add(key)
+                deduplicated.append(r)
+
+    # Second pass: add non-exact matches
+    for r in fused:
+        if not r.get("exact_match"):
+            key = (r.get("video_id", ""), r.get("start", 0), r.get("end", 0))
+            if key not in seen:
+                seen.add(key)
+                deduplicated.append(r)
 
     deduplicated.sort(key=lambda x: x["final"], reverse=True)
     return {"results": deduplicated[:k], "alpha_used": alpha}
