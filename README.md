@@ -1,5 +1,5 @@
 # In-Video Search System
-### by Raymond Gan
+### by Raymond Gan. Try it at http://raymond.hopto.org:8501
 
 A semantic video search system to let you find and play specific moments in videos with natural language queries. You may search by dialogue, descriptions, people, objects, or scenes. Built for Tubi's hackathon with FastAPI backend and Streamlit frontend. I used these AI models: OpenAI [CLIP](https://openai.com/index/clip/) for images, OpenAI [Whisper](https://openai.com/index/whisper/) for speech recognition, and [FAISS (Facebook AI Similarity Search)](https://www.pinecone.io/learn/series/faiss/faiss-tutorial/) for vector embeddings.
 
@@ -127,19 +127,35 @@ pip install -r requirements.txt
 1. **Start Backend**: Run the FastAPI server ([`./run.sh`](https://github.com/rayning0/ivs/blob/main/app/run.sh) in `/app/`)
 2. **Start Frontend**: Run Streamlit UI ([`./run.sh`](https://github.com/rayning0/ivs/blob/main/ui/run.sh) in `/ui/`)
 3. **Process Video**:
-   - Enter video path (auto-generates video ID from filename)
+   - Select video from dropdown (episode1.mp4 or episode2.mp4)
    - Adjust shot detection threshold (20-40, default 27)
    - Click "Process" to extract multi-frame thumbnails and subtitles
+   - View processing time and statistics
 4. **Search Content**:
-   - Enter natural language queries
+   - Choose from predefined search examples or type custom queries
    - Adjust search balance (alpha slider: 0.0 = dialogue, 1.0 = images, 0.6 = balanced)
    - Set number of results (K slider)
 5. **View Results**:
-   - Browse thumbnails and subtitle snippets
+   - Browse thumbnails and subtitle snippets at full size
    - Click video players to play at exact timestamps
+   - See exact match badges for perfect quote matches
    - Use data management tools to delete processed data
 
 ## Example Queries
+
+### Predefined Search Examples
+The UI now includes a dropdown with common search patterns:
+- `"have you tried turning it off and on again?"` (exact quote)
+- `"they toss us away like yesterday's jam"` (exact quote)
+- `woman in elevator` (visual description)
+- `man with glasses and big hair` (visual description)
+- `woman walks by red shoes in window` (visual description)
+- `old woman falls down stairs` (visual description)
+- `0118999` (phone number)
+- `tv ad` (content type)
+- `"I am declaring war"` (exact quote)
+- `"80 million people"` (exact quote)
+- `trying on shoes` (visual description)
 
 ### Visual Queries (Alpha = 1.0)
 - "woman walks by red shoes in window"
@@ -218,6 +234,18 @@ ivs/
 - **Search balance controls** (alpha slider)
 - **Data management tools** for cleanup
 - **Accessibility improvements** (proper labels)
+
+### Latest Features (October 2025)
+- **Video Selection Dropdown**: Choose between episode1.mp4 and episode2.mp4
+- **Smart Processing Detection**: Automatically detects already processed videos
+- **Predefined Search Examples**: Dropdown with common search queries
+- **Custom Search Input**: Option to type your own queries
+- **Processing Time Display**: Shows how long video processing took
+- **Search Query Logging**: Console output for debugging search requests
+- **Improved Error Handling**: Better connection error management
+- **Full-Size Thumbnails**: Thumbnails display at full resolution
+- **Exact Match Highlighting**: Special badges for exact quote matches
+- **Hybrid GPU/CPU Processing**: CLIP on GPU, Whisper on CPU for stability
 
 ## Development
 
