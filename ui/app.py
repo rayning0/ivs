@@ -10,7 +10,7 @@ st.title("In-Video Search")
 st.write("by Raymond Gan, 10/27/2025")
 
 with st.expander("Process a video"):
-    default_video_path = os.path.expanduser("~/ivs/data/videos/test2.mp4")
+    default_video_path = os.path.expanduser("~/ivs/data/videos/episode2.mp4")
     vp = st.text_input("Video path (on this machine)", default_video_path)
 
     # Extract filename as video ID from path
@@ -53,7 +53,8 @@ with st.expander("Process a video"):
             st.write(f"Error: {r.text}")
 
 query = st.text_input(
-    "**Find (dialogue, description, person, object, scene):**", "man in suit"
+    "**Find (dialogue, description, person, object, scene):**",
+    '"have you tried turning it off and on again?"',
 )
 
 col1, col2 = st.columns(2)

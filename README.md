@@ -142,14 +142,13 @@ pip install -r requirements.txt
 ## Example Queries
 
 ### Visual Queries (Alpha = 1.0)
-- "person talking in office"
+- "woman walks by red shoes in window"
 - "outdoor scene with trees"
 - "close-up shot of hands"
 - "trying on shoes"
 - "old woman falling down stairs"
 
 ### Dialogue Queries (Alpha = 0.0)
-- "Hello I.T."
 - "Have you tried turning it off and on again?"
 - "emergency services"
 - "stress is a disease"
