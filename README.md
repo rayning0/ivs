@@ -13,7 +13,7 @@ Useful for viewers to find/jump to favorite scenes, video editors to make movie 
 - ⏱️ **Precise Timestamps**: Jump directly to relevant moments with exact timing
 - 🎥 **Inline Video Player**: Play videos directly in browser at exact timestamps
 - 🎛️ **Search Balance Control**: Adjustable alpha slider to pick importance of search by images vs dialogue
-- 🚀 **Real-time Processing**: Fast video processing + indexing pipeline. Can run either locally on laptop or, for speed, on virtual machine with a GPU. I ran my demo on a Nebius virtual machine using [Nvidia H200 NVLink GPU with Intel Sapphire Rapids](https://nebius.com/h200), on Ubuntu 22.04 (CUDA 12).
+- 🚀 **Real-time Processing**: Fast video processing + indexing pipeline. Can run either locally on laptop or, for speed, on virtual machine with a GPU. I ran my demo on a Nebius virtual machine using [Nvidia H200 NVLink GPU with Intel Sapphire Rapids](https://nebius.com/h200), on Ubuntu 22.04 (CUDA 12). I configured this Nebius VM from scratch.
 - 🧹 **Data Management**: Tools to clear processed data and restart
 
 ## Architecture
