@@ -6,15 +6,15 @@ from scenedetect import SceneManager, VideoManager
 from scenedetect.detectors import ContentDetector
 
 
-def detect_scenes(video_path, threshold=27):
+def detect_shots(video_path, threshold=27):
     vm = VideoManager([video_path])
     sm = SceneManager()
     sm.add_detector(ContentDetector(threshold=threshold))
     vm.set_downscale_factor()
     vm.start()
     sm.detect_scenes(frame_source=vm)
-    scenes = sm.get_scene_list()
-    times = [(s.get_seconds(), e.get_seconds()) for s, e in scenes]
+    shots = sm.get_scene_list()
+    times = [(s.get_seconds(), e.get_seconds()) for s, e in shots]
     vm.release()
     return times
 

@@ -5,13 +5,13 @@ A semantic video search system to let you find and play specific moments in vide
 
 ## Features
 
-- 🎬 **Automatic Scene Detection**: Intelligently detects scene changes in videos
-- 🖼️ **Multi-Frame Pooling**: Netflix-style shot representation using 3 frames per scene
+- 🎬 **Automatic Shot Detection**: Intelligently detects shot changes in videos
+- 🖼️ **Multi-Frame Pooling**: Netflix-style shot representation using 3 frames per shot
 - 🔍 **Dual-Modal Search**: Search by both visual content and spoken dialogue
 - ⏱️ **Precise Timestamps**: Jump directly to relevant moments with exact timing
 - 🎥 **Inline Video Player**: Play videos directly in browser at exact timestamps
 - 🎛️ **Search Balance Control**: Adjustable alpha slider to pick importance of search by images vs dialogue
-- 🚀 **Real-time Processing**: Fast video processing + indexing pipeline. Can run either locally on laptop or, for speed, on virtual machine with a GPU. I ran my demo on a Nebius virtual machine using [Nvidia H200 NVLink with Intel Sapphire Rapids](https://nebius.com/h200), on Ubuntu 22.04 (CUDA 12).
+- 🚀 **Real-time Processing**: Fast video processing + indexing pipeline. Can run either locally on laptop or, for speed, on virtual machine with a GPU. I ran my demo on a Nebius virtual machine using [Nvidia H200 NVLink GPU with Intel Sapphire Rapids](https://nebius.com/h200), on Ubuntu 22.04 (CUDA 12).
 - 🧹 **Data Management**: Tools to clear processed data and restart
 
 ## Architecture
@@ -41,7 +41,7 @@ A semantic video search system to let you find and play specific moments in vide
 
 #### Backend API (`/app/`)
 - **FastAPI Application** ([`app.py`](https://github.com/rayning0/ivs/blob/main/app/app.py)): REST API endpoints for video processing and search
-- **Video Processing** ([`video_tools.py`](https://github.com/rayning0/ivs/blob/main/app/video_tools.py)): Scene detection using PySceneDetect and FFmpeg
+- **Video Processing** ([`video_tools.py`](https://github.com/rayning0/ivs/blob/main/app/video_tools.py)): Shot detection using PySceneDetect and FFmpeg
 - **AI Models** ([`models.py`](https://github.com/rayning0/ivs/blob/main/app/models.py)): OpenAI speech (Whisper) and image embeddings (CLIP)
 - **Vector Search** ([`index.py`](https://github.com/rayning0/ivs/blob/main/app/index.py)): FAISS = Facebook AI Similarity Search
 - **Data Storage** ([`store.py`](https://github.com/rayning0/ivs/blob/main/app/store.py)): JSONL-based metadata persistence
@@ -57,7 +57,7 @@ A semantic video search system to let you find and play specific moments in vide
 ### Backend Technologies
 - **FastAPI**: Modern, fast web framework for building APIs
 - **Uvicorn**: ASGI server for FastAPI applications
-- **PySceneDetect**: Automatic scene change detection in videos
+- **PySceneDetect**: Automatic shot change detection in videos
 - **FFmpeg**: Video processing and multi-frame extraction
 - **Sentence Transformers**: CLIP model for semantic embeddings
 - **FAISS**: Facebook AI Similarity Search for vector operations
@@ -77,7 +77,7 @@ A semantic video search system to let you find and play specific moments in vide
 - **Multi-Frame Pooling**: Averages embeddings from 3 frames per shot for better representation
 - **Faster-Whisper ASR**: Automatic speech recognition for transcript generation
 - **Vector Embeddings**: 512-dimensional embeddings for similarity search
-- **Scene Detection**: Content-based scene change detection with configurable thresholds
+- **Shot Detection**: Content-based shot change detection with configurable thresholds
 - **Dual-Modal Search**: Fuses vision and transcript search with adjustable weights
 
 ### Data Storage
@@ -92,7 +92,7 @@ A semantic video search system to let you find and play specific moments in vide
 
 ### Video Processing
 - `POST /process_video`: Process a video file with multi-frame pooling and ASR
-  - Parameters: `video_path`, `video_id`, `scene_threshold`
+  - Parameters: `video_path`, `video_id`, `shot_threshold`
   - Returns: Number of shots detected, frames processed, and transcript segments
 
 ### Search
@@ -128,7 +128,7 @@ pip install -r requirements.txt
 2. **Start Frontend**: Run Streamlit UI ([`./run.sh`](https://github.com/rayning0/ivs/blob/main/ui/run.sh) in `/ui/`)
 3. **Process Video**:
    - Enter video path (auto-generates video ID from filename)
-   - Adjust scene detection threshold (20-40, default 27)
+   - Adjust shot detection threshold (20-40, default 27)
    - Click "Process" to extract multi-frame thumbnails and transcripts
 4. **Search Content**:
    - Enter natural language queries
@@ -191,7 +191,7 @@ ivs/
 
 ## Performance Notes
 
-- **Scene Detection**: Configurable threshold (20-40) for sensitivity
+- **Shot Detection**: Configurable threshold (20-40) for sensitivity
 - **Multi-Frame Processing**: 3x slower than single-frame (3 frames per shot)
 - **ASR Processing**: ~1-2x real-time depending on hardware (CUDA recommended)
 - **Search Speed**: Sub-second response for dual-modal semantic queries

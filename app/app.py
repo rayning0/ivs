@@ -18,7 +18,7 @@ from subs_index import load_index as load_subs_index
 from subs_index import load_meta_all as load_subs_meta
 from subs_index import save_index as save_subs_index
 from subs_index import search_vector as search_subs
-from video_tools import detect_scenes, extract_midframe, extract_multiframes
+from video_tools import detect_shots, extract_midframe, extract_multiframes
 
 app = FastAPI()
 
@@ -34,7 +34,7 @@ load_subs_index()
 def process_video(
     video_path: str = Form(...),
     video_id: str = Form(...),
-    scene_threshold: int = Form(27),
+    shot_threshold: int = Form(27),
 ):
     """
     Process BOTH:
@@ -46,10 +46,10 @@ def process_video(
 
     try:
         # ----- 1) SHOTS → multi-frame pooled image embeddings -----
-        scenes = detect_scenes(video_path, threshold=scene_threshold)
+        shots = detect_shots(video_path, threshold=shot_threshold)
         shot_embeddings, metas = [], []
 
-        for s, e in scenes:
+        for s, e in shots:
             # Extract multiple frames per shot for better representation
             frames = extract_multiframes(video_path, s, e, num_frames=3)
 

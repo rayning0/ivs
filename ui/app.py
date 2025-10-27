@@ -17,15 +17,15 @@ with st.expander("Process a video"):
     video_filename = os.path.basename(vp)
     video_id = os.path.splitext(video_filename)[0]  # Remove .mp4 extension
 
-    st.write("**Scene Detection Threshold:**")
-    st.caption("20-25 = Very Sensitive (many short scenes)")
-    st.caption("26-30 = Balanced (1 new scene every few seconds)")
-    st.caption("31-35 = Less Sensitive (fewer, longer scenes)")
+    st.write("**Shot Detection Threshold:**")
+    st.caption("20-25 = Very Sensitive (many short shots)")
+    st.caption("26-30 = Balanced (1 new shot every few seconds)")
+    st.caption("31-35 = Less Sensitive (fewer, longer shots)")
     thr = st.slider("Threshold", 20, 40, 27, label_visibility="collapsed")
     if st.button("Process"):
         r = requests.post(
             f"{API}/process_video",
-            data={"video_path": vp, "video_id": video_id, "scene_threshold": thr},
+            data={"video_path": vp, "video_id": video_id, "shot_threshold": thr},
         )
         if r.status_code == 200:
             try:
