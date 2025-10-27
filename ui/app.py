@@ -101,7 +101,7 @@ selected_example = st.selectbox(
 )
 
 # Handle input based on selection
-if selected_example == "Type your own query...":
+if selected_example == "Type your own search...":
     query = st.text_input(
         "**Enter your search query:**",
         placeholder="e.g., 'red shoes', 'office workers', 'angry face'",
