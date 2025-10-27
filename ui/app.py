@@ -36,6 +36,16 @@ with st.expander("Process a video"):
                     f"**Frames processed:** {result.get('total_frames_processed', 0)} (3 per shot)"
                 )
                 st.write(f"**Subtitle segments:** {result.get('subtitle_segments', 0)}")
+
+                # Display processing time
+                processing_time = result.get("processing_time_seconds", 0)
+                if processing_time > 0:
+                    minutes = int(processing_time // 60)
+                    seconds = processing_time % 60
+                    if minutes > 0:
+                        st.write(f"**Processing time:** {minutes}m {seconds:.1f}s")
+                    else:
+                        st.write(f"**Processing time:** {seconds:.1f}s")
             except Exception:
                 st.error("Could not parse response")
         else:

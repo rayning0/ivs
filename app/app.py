@@ -41,6 +41,10 @@ def process_video(
       1) Video shots (thumbnails + image embeddings)
       2) Audio subtitles (ASR) → text embeddings
     """
+    import time
+
+    start_time = time.time()
+
     print(f"Processing video: {video_path}")
     assert os.path.exists(video_path), f"Video not found: {video_path}"
 
@@ -127,10 +131,18 @@ def process_video(
             transcribed = 0
 
         total_frames = sum(m.get("num_frames", 1) for m in metas)
+
+        # Calculate processing time
+        end_time = time.time()
+        processing_time = end_time - start_time
+
+        print(f"✅ Video processing completed in {processing_time:.2f} seconds")
+
         return {
             "shots": len(metas),
             "subtitle_segments": transcribed,
             "total_frames_processed": total_frames,
+            "processing_time_seconds": round(processing_time, 2),
         }
     except Exception as e:
         print(f"Error processing video: {e}")
