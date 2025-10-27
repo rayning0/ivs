@@ -26,40 +26,57 @@ with st.expander("Process a video"):
     video_filename = os.path.basename(vp)
     video_id = os.path.splitext(video_filename)[0]  # Remove .mp4 extension
 
-    st.write("**Shot Detection Threshold:**")
-    st.caption("20-25 = Very Sensitive (many short shots)")
-    st.caption("26-30 = Balanced (1 new shot every few seconds)")
-    st.caption("31-35 = Less Sensitive (fewer, longer shots)")
-    thr = st.slider("Threshold", 20, 40, 27, label_visibility="collapsed")
-    if st.button("Process"):
-        r = requests.post(
-            f"{API}/process_video",
-            data={"video_path": vp, "video_id": video_id, "shot_threshold": thr},
-        )
-        if r.status_code == 200:
-            try:
-                result = r.json()
-                st.success(f"✅ Processing complete!")
-                st.write(f"**Shots detected:** {result.get('shots', 0)}")
-                st.write(
-                    f"**Frames processed:** {result.get('total_frames_processed', 0)} (3 per shot)"
-                )
-                st.write(f"**Subtitle segments:** {result.get('subtitle_segments', 0)}")
+    # Check if thumbnails already exist for this video
+    thumbs_dir = os.path.expanduser("~/ivs/data/thumbs")
+    # Use the full filename (with .mp4) to match thumbnail naming pattern
+    existing_thumbs = glob.glob(os.path.join(thumbs_dir, f"{video_filename}_*.jpg"))
+    already_processed = len(existing_thumbs) > 0
 
-                # Display processing time
-                processing_time = result.get("processing_time_seconds", 0)
-                if processing_time > 0:
-                    minutes = int(processing_time // 60)
-                    seconds = processing_time % 60
-                    if minutes > 0:
-                        st.write(f"**Processing time:** {minutes}m {seconds:.1f}s")
-                    else:
-                        st.write(f"**Processing time:** {seconds:.1f}s")
-            except Exception:
-                st.error("Could not parse response")
-        else:
-            st.error(f"❌ Processing failed (Status: {r.status_code})")
-            st.write(f"Error: {r.text}")
+    if already_processed:
+        st.success(
+            f"✅ {video_id} already processed ({len(existing_thumbs)} thumbnails found)"
+        )
+        st.info(
+            "💡 To reprocess, delete existing thumbnails in Data Management section below"
+        )
+    else:
+        st.write("**Shot Detection Threshold:**")
+        st.caption("20-25 = Very Sensitive (many short shots)")
+        st.caption("26-30 = Balanced (1 new shot every few seconds)")
+        st.caption("31-35 = Less Sensitive (fewer, longer shots)")
+        thr = st.slider("Threshold", 20, 40, 27, label_visibility="collapsed")
+
+        if st.button("Process"):
+            r = requests.post(
+                f"{API}/process_video",
+                data={"video_path": vp, "video_id": video_id, "shot_threshold": thr},
+            )
+            if r.status_code == 200:
+                try:
+                    result = r.json()
+                    st.success(f"✅ Processing complete!")
+                    st.write(f"**Shots detected:** {result.get('shots', 0)}")
+                    st.write(
+                        f"**Frames processed:** {result.get('total_frames_processed', 0)} (3 per shot)"
+                    )
+                    st.write(
+                        f"**Subtitle segments:** {result.get('subtitle_segments', 0)}"
+                    )
+
+                    # Display processing time
+                    processing_time = result.get("processing_time_seconds", 0)
+                    if processing_time > 0:
+                        minutes = int(processing_time // 60)
+                        seconds = processing_time % 60
+                        if minutes > 0:
+                            st.write(f"**Processing time:** {minutes}m {seconds:.1f}s")
+                        else:
+                            st.write(f"**Processing time:** {seconds:.1f}s")
+                except Exception:
+                    st.error("Could not parse response")
+            else:
+                st.error(f"❌ Processing failed (Status: {r.status_code})")
+                st.write(f"Error: {r.text}")
 
 # Predefined search examples
 search_examples = [
