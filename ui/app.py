@@ -248,6 +248,7 @@ with st.expander("🗑️ Data Management", expanded=False):
     with col1:
         if st.button("🗑️ Delete All Data", type="secondary"):
             data_dir = os.path.expanduser("~/ivs/data")
+            project_dir = os.path.expanduser("~/ivs")
             deleted_files = []
 
             # Delete all .jpg files in thumbs directory
@@ -270,12 +271,81 @@ with st.expander("🗑️ Data Management", expanded=False):
                 except Exception as e:
                     st.error(f"Failed to delete {file}: {e}")
 
-            if deleted_files:
-                st.success(f"✅ Deleted {len(deleted_files)} files:")
-                for file in deleted_files[:10]:  # Show first 10 files
-                    st.write(f"  • {file}")
-                if len(deleted_files) > 10:
-                    st.write(f"  • ... and {len(deleted_files) - 10} more files")
+            # Clear Python cache directories
+            import shutil
+
+            cache_dirs = []
+            for root, dirs, files in os.walk(project_dir):
+                for dir_name in dirs:
+                    if dir_name == "__pycache__":
+                        cache_path = os.path.join(root, dir_name)
+                        try:
+                            shutil.rmtree(cache_path)
+                            cache_dirs.append(os.path.relpath(cache_path, project_dir))
+                        except Exception as e:
+                            st.error(f"Failed to delete cache {cache_path}: {e}")
+
+            # Delete .pyc files
+            pyc_files = []
+            for root, dirs, files in os.walk(project_dir):
+                for file in files:
+                    if file.endswith(".pyc"):
+                        pyc_path = os.path.join(root, file)
+                        try:
+                            os.remove(pyc_path)
+                            pyc_files.append(os.path.relpath(pyc_path, project_dir))
+                        except Exception as e:
+                            st.error(f"Failed to delete {pyc_path}: {e}")
+
+            # Delete .DS_Store files (macOS)
+            ds_store_files = []
+            for root, dirs, files in os.walk(project_dir):
+                for file in files:
+                    if file == ".DS_Store":
+                        ds_path = os.path.join(root, file)
+                        try:
+                            os.remove(ds_path)
+                            ds_store_files.append(os.path.relpath(ds_path, project_dir))
+                        except Exception as e:
+                            st.error(f"Failed to delete {ds_path}: {e}")
+
+            # Report results
+            total_deleted = (
+                len(deleted_files)
+                + len(cache_dirs)
+                + len(pyc_files)
+                + len(ds_store_files)
+            )
+            if total_deleted > 0:
+                st.success(f"✅ Deleted {total_deleted} items:")
+
+                if deleted_files:
+                    st.write(f"**Data files ({len(deleted_files)}):**")
+                    for file in deleted_files[:5]:  # Show first 5 files
+                        st.write(f"  • {file}")
+                    if len(deleted_files) > 5:
+                        st.write(f"  • ... and {len(deleted_files) - 5} more files")
+
+                if cache_dirs:
+                    st.write(f"**Python cache directories ({len(cache_dirs)}):**")
+                    for cache_dir in cache_dirs[:3]:
+                        st.write(f"  • {cache_dir}")
+                    if len(cache_dirs) > 3:
+                        st.write(f"  • ... and {len(cache_dirs) - 3} more")
+
+                if pyc_files:
+                    st.write(f"**Python bytecode files ({len(pyc_files)}):**")
+                    for pyc_file in pyc_files[:3]:
+                        st.write(f"  • {pyc_file}")
+                    if len(pyc_files) > 3:
+                        st.write(f"  • ... and {len(pyc_files) - 3} more")
+
+                if ds_store_files:
+                    st.write(f"**System files ({len(ds_store_files)}):**")
+                    for ds_file in ds_store_files[:3]:
+                        st.write(f"  • {ds_file}")
+                    if len(ds_store_files) > 3:
+                        st.write(f"  • ... and {len(ds_store_files) - 3} more")
             else:
                 st.info("No files found to delete.")
 
@@ -286,9 +356,15 @@ with st.expander("🗑️ Data Management", expanded=False):
         - All thumbnail images (*.jpg)
         - Search indexes (*.faiss)
         - Metadata files (*.jsonl)
+        - Python cache directories (__pycache__)
+        - Python bytecode files (*.pyc)
+        - System files (.DS_Store)
 
         **What stays:**
         - Video files in /videos/
         - Directory structure
+        - Source code files
+        - Virtual environments
+        - Running servers (backend/frontend)
         """
         )
