@@ -182,20 +182,43 @@ def search(query: str = Form(...), k: int = Form(8), alpha: float = Form(0.6)):
     query_lower = query.lower().strip()
     # Remove punctuation for comparison
     query_clean = re.sub(r"[^\w\s]", "", query_lower)
-    print(f"🔍 Searching for exact match: '{query_lower}' (clean: '{query_clean}')")
+    # Split into words for partial matching
+    query_words = query_clean.split()
+    print(
+        f"🔍 Searching for exact match: '{query_lower}' (clean: '{query_clean}', words: {query_words})"
+    )
+
     for meta in subs_meta:
         text_lower = meta.get("text", "").lower().strip()
         text_clean = re.sub(r"[^\w\s]", "", text_lower)
+        text_words = text_clean.split()
+
+        # Check for exact word sequence match (3+ words)
+        is_exact_match = False
+        if len(query_words) >= 3:  # Only for phrases with 3+ words
+            # Check if query words appear as consecutive sequence in subtitle
+            for i in range(len(text_words) - len(query_words) + 1):
+                if text_words[i : i + len(query_words)] == query_words:
+                    is_exact_match = True
+                    print(
+                        f"🎯 Found partial phrase match: '{query_words}' in '{text_words}'"
+                    )
+                    break
+
+        # Also check for exact punctuation-insensitive match
         if query_clean == text_clean:
+            is_exact_match = True
+            print(f"🎯 Found exact match: '{query_clean}' -> '{text_clean}'")
+        elif query_clean in text_clean:
+            print(f"🔍 Partial match found: '{query_clean}' in '{text_clean}'")
+
+        if is_exact_match:
             m = meta.copy()
             m["score_t"] = 1.0  # Perfect score for exact match
             m["type"] = "subtitle"
             m["thumb_url"] = None
             m["exact_match"] = True
             exact_matches.append(m)
-            print(f"🎯 Found exact match: '{query_clean}' -> '{text_clean}'")
-        elif query_clean in text_clean:
-            print(f"🔍 Partial match found: '{query_clean}' in '{text_clean}'")
 
     # Add regular CLIP-based subtitle results
     for i, s in zip(sub_idx, sub_scores):

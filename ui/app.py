@@ -97,6 +97,17 @@ if st.button("Search"):
             # Always show video player for exact matches
             st.video(video_url, start_time=int(item["start"]))
 
+            # Add timestamp and score below video
+            subtitle_text = item.get("text", "")
+            if subtitle_text:
+                st.write(
+                    f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - {subtitle_text} (score={item['final']:.3f})"
+                )
+            else:
+                st.write(
+                    f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] score={item['final']:.3f}"
+                )
+
             # Optionally show thumbnail if available
             if item.get("thumb_url"):
                 try:
@@ -115,6 +126,18 @@ if st.button("Search"):
                 )
                 # Add video player with timestamp
                 st.video(video_url, start_time=int(item["start"]))
+
+                # Add timestamp and score below video
+                subtitle_text = item.get("text", "")
+                if subtitle_text:
+                    st.write(
+                        f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - {subtitle_text} (score={item['final']:.3f})"
+                    )
+                else:
+                    st.write(
+                        f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] score={item['final']:.3f}"
+                    )
+
             except Exception as e:
                 # If thumbnail fails to load, show text version with debug info
                 st.write(
@@ -122,12 +145,34 @@ if st.button("Search"):
                 )
                 # Add video player with timestamp
                 st.video(video_url, start_time=int(item["start"]))
+
+                # Add timestamp and score below video
+                subtitle_text = item.get("text", "")
+                if subtitle_text:
+                    st.write(
+                        f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - {subtitle_text} (score={item['final']:.3f})"
+                    )
+                else:
+                    st.write(
+                        f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] score={item['final']:.3f}"
+                    )
         else:
             st.write(
                 f"**{item['video_id']}** [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - {item.get('text', '')[:100]}... (score={item['final']:.3f})"
             )
             # Add video player with timestamp
             st.video(video_url, start_time=int(item["start"]))
+
+            # Add timestamp and score below video
+            subtitle_text = item.get("text", "")
+            if subtitle_text:
+                st.write(
+                    f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] - {subtitle_text} (score={item['final']:.3f})"
+                )
+            else:
+                st.write(
+                    f"{item['video_id']} [{format_timestamp(item['start'])}–{format_timestamp(item['end'])}] score={item['final']:.3f}"
+                )
 
 # Data Management Section
 with st.expander("🗑️ Data Management", expanded=False):
