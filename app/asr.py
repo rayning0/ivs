@@ -5,11 +5,11 @@ from faster_whisper import WhisperModel
 
 def get_best_device():
     """Return best available device for faster-whisper"""
-    try:
-        WhisperModel("tiny", device="cuda", compute_type="int8")
-        return "cuda"  # For Nvidia GPU in VM
-    except ValueError:
-        return "cpu"
+    # try:
+    #     WhisperModel("tiny", device="cuda", compute_type="int8")
+    #     return "cuda"  # For Nvidia GPU in VM
+    # except ValueError:
+    return "cpu"  # Force CPU for Whisper to avoid cuDNN errors
 
 
 _model = None
