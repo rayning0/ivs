@@ -12,7 +12,7 @@ from models import embed_images, embed_text
 from PIL import Image
 from store import append, load_all
 
-# transcript FAISS + ASR
+# subtitles FAISS + ASR
 from subs_index import add_segments as add_subs_segments
 from subs_index import load_index as load_subs_index
 from subs_index import load_meta_all as load_subs_meta
@@ -39,7 +39,7 @@ def process_video(
     """
     Process BOTH:
       1) Video shots (thumbnails + image embeddings)
-      2) Audio transcript (ASR) → text embeddings
+      2) Audio subtitles (ASR) → text embeddings
     """
     print(f"Processing video: {video_path}")
     assert os.path.exists(video_path), f"Video not found: {video_path}"
@@ -103,8 +103,8 @@ def process_video(
             for m in metas:
                 append(m)
 
-        # ----- 2) TRANSCRIPT (ASR) → text embeddings -----
-        # If ASR fails (e.g., not installed), we still succeed on vision path.
+        # ----- 2) Subtitle (ASR) → text embeddings -----
+        # If ASR fails (e.g., not installed), we still succeed on image path.
         try:
             # [{"start","end","text"}]
             segments = transcribe_to_segments(video_path)
@@ -129,7 +129,7 @@ def process_video(
         total_frames = sum(m.get("num_frames", 1) for m in metas)
         return {
             "shots": len(metas),
-            "transcript_segments": transcribed,
+            "subtitle_segments": transcribed,
             "total_frames_processed": total_frames,
         }
     except Exception as e:
@@ -152,13 +152,13 @@ def _minmax(scores):
 def search(query: str = Form(...), k: int = Form(8), alpha: float = Form(0.6)):
     """
     Fused search:
-      - Vision index (image shots) scored by CLIP(text→image)
-      - Transcript index (subtitle/ASR) scored by CLIP(text→text)
-    alpha weights vision; (1 - alpha) weights transcript.
+      - Image index (image shots) scored by CLIP(text→image)
+      - Subtitle index (subtitle/ASR) scored by CLIP(text→text)
+    alpha weights image; (1 - alpha) weights subtitles.
     """
     qvec = embed_text([query])[0]
 
-    # Vision
+    # Images
     vid_idx, vid_scores = search_img(qvec, k)
     img_meta = load_all()
     vid_results = []
@@ -166,11 +166,11 @@ def search(query: str = Form(...), k: int = Form(8), alpha: float = Form(0.6)):
         if 0 <= i < len(img_meta):
             m = img_meta[i].copy()
             m["score_v"] = float(s)
-            m["type"] = "vision"
+            m["type"] = "image"
             m["thumb_url"] = f"/static/{m['thumb_rel']}"
             vid_results.append(m)
 
-    # Transcript
+    # Subtitles
     sub_idx, sub_scores = search_subs(qvec, k)
     subs_meta = load_subs_meta()
     sub_results = []
@@ -178,8 +178,8 @@ def search(query: str = Form(...), k: int = Form(8), alpha: float = Form(0.6)):
         if 0 <= i < len(subs_meta):
             m = subs_meta[i].copy()
             m["score_t"] = float(s)
-            m["type"] = "transcript"
-            # thumb is optional for transcript hits
+            m["type"] = "subtitle"
+            # thumb is optional for subtitle hits
             m["thumb_url"] = None
             sub_results.append(m)
 

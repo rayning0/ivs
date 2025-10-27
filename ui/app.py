@@ -35,9 +35,7 @@ with st.expander("Process a video"):
                 st.write(
                     f"**Frames processed:** {result.get('total_frames_processed', 0)} (3 per shot)"
                 )
-                st.write(
-                    f"**Transcript segments:** {result.get('transcript_segments', 0)}"
-                )
+                st.write(f"**Subtitle segments:** {result.get('subtitle_segments', 0)}")
             except Exception:
                 st.error("Could not parse response")
         else:

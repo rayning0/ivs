@@ -45,7 +45,7 @@ A semantic video search system to let you find and play specific moments in vide
 - **AI Models** ([`models.py`](https://github.com/rayning0/ivs/blob/main/app/models.py)): OpenAI speech (Whisper) and image embeddings (CLIP)
 - **Vector Search** ([`index.py`](https://github.com/rayning0/ivs/blob/main/app/index.py)): FAISS = Facebook AI Similarity Search
 - **Data Storage** ([`store.py`](https://github.com/rayning0/ivs/blob/main/app/store.py)): JSONL-based metadata persistence
-- **Transcript Search** ([`subs_index.py`](https://github.com/rayning0/ivs/blob/main/app/subs_index.py)): FAISS vector search for transcript embeddings
+- **Subtitle Search** ([`subs_index.py`](https://github.com/rayning0/ivs/blob/main/app/subs_index.py)): FAISS vector search for subtitle embeddings
 - **Speech Recognition** ([`asr.py`](https://github.com/rayning0/ivs/blob/main/app/asr.py)): Automatic Speech Recognition using [`faster-whisper`](https://github.com/SYSTRAN/faster-whisper)
 
 #### Frontend UI (`/ui/`)
@@ -61,7 +61,7 @@ A semantic video search system to let you find and play specific moments in vide
 - **FFmpeg**: Video processing and multi-frame extraction
 - **Sentence Transformers**: CLIP model for semantic embeddings
 - **FAISS**: Facebook AI Similarity Search for vector operations
-- **Faster-Whisper**: Automatic Speech Recognition (ASR) for transcript generation
+- **Faster-Whisper**: Automatic Speech Recognition (ASR) for subtitle generation
 - **PIL (Pillow)**: Image processing and manipulation
 - **NumPy**: Multi-frame embedding averaging
 
@@ -75,17 +75,17 @@ A semantic video search system to let you find and play specific moments in vide
   - Handles both text queries and image embeddings
   - Enables semantic similarity between text and images
 - **Multi-Frame Pooling**: Averages embeddings from 3 frames per shot for better representation
-- **Faster-Whisper ASR**: Automatic speech recognition for transcript generation
+- **Faster-Whisper ASR**: Automatic speech recognition for subtitle generation
 - **Vector Embeddings**: 512-dimensional embeddings for similarity search
 - **Shot Detection**: Content-based shot change detection with configurable thresholds
-- **Dual-Modal Search**: Fuses vision and transcript search with adjustable weights
+- **Dual-Modal Search**: Fuses image and subtitle search with adjustable weights
 
 ### Data Storage
 - **Multi-Frame Thumbnails**: JPG files stored in `/data/thumbs/` (3 per shot)
-- **Vision Metadata**: JSONL format in `/data/shots_meta.jsonl`
-- **Vision Vector Index**: FAISS index file `/data/shots.faiss`
-- **Transcript Metadata**: JSONL format in `/data/subs_meta.jsonl`
-- **Transcript Vector Index**: FAISS index file `/data/subs.faiss`
+- **Image Metadata**: JSONL format in `/data/shots_meta.jsonl`
+- **Image Vector Index**: FAISS index file `/data/shots.faiss`
+- **Subtitle Metadata**: JSONL format in `/data/subs_meta.jsonl`
+- **Subtitle Vector Index**: FAISS index file `/data/subs.faiss`
 - **Static Files**: Served via FastAPI static file mounting
 
 ## API Endpoints
@@ -93,13 +93,13 @@ A semantic video search system to let you find and play specific moments in vide
 ### Video Processing
 - `POST /process_video`: Process a video file with multi-frame pooling and ASR
   - Parameters: `video_path`, `video_id`, `shot_threshold`
-  - Returns: Number of shots detected, frames processed, and transcript segments
+  - Returns: Number of shots detected, frames processed, and subtitle segments
 
 ### Search
 - `POST /search`: Dual-modal search for video content using text queries
-  - Parameters: `query`, `k` (number of results), `alpha` (vision vs transcript weight)
+  - Parameters: `query`, `k` (number of results), `alpha` (image vs subtitle weight)
   - Returns: Ranked list of matching video segments with timestamps and relevance scores
-  - Alpha: 0.0 = transcript only, 1.0 = vision only, 0.6 = balanced (default)
+  - Alpha: 0.0 = subtitle only, 1.0 = image only, 0.6 = balanced (default)
 
 ## Installation & Setup
 
@@ -129,13 +129,13 @@ pip install -r requirements.txt
 3. **Process Video**:
    - Enter video path (auto-generates video ID from filename)
    - Adjust shot detection threshold (20-40, default 27)
-   - Click "Process" to extract multi-frame thumbnails and transcripts
+   - Click "Process" to extract multi-frame thumbnails and subtitles
 4. **Search Content**:
    - Enter natural language queries
    - Adjust search balance (alpha slider: 0.0 = dialogue, 1.0 = images, 0.6 = balanced)
    - Set number of results (K slider)
 5. **View Results**:
-   - Browse thumbnails and transcript snippets
+   - Browse thumbnails and subtitle snippets
    - Click video players to play at exact timestamps
    - Use data management tools to delete processed data
 
@@ -169,8 +169,8 @@ ivs/
 │   ├── app.py             # FastAPI application with dual-modal search
 │   ├── models.py          # AI/ML models (OpenAI CLIP)
 │   ├── video_tools.py     # Video processing with multi-frame pooling
-│   ├── index.py           # Vision vector search (FAISS)
-│   ├── subs_index.py      # Transcript vector search (FAISS)
+│   ├── index.py           # Image vector search (FAISS)
+│   ├── subs_index.py      # Subtitle vector search (FAISS)
 │   ├── asr.py             # Automatic Speech Recognition (OpenAI faster-whisper)
 │   ├── store.py           # Metadata storage
 │   ├── requirements.txt   # Backend dependencies
@@ -182,10 +182,10 @@ ivs/
 ├── data/                   # Generated data (excluded from git)
 │   ├── thumbs/            # Multi-frame thumbnails (3 per shot)
 │   ├── videos/            # Source video files
-│   ├── shots_meta.jsonl   # Vision metadata
-│   ├── shots.faiss        # Vision vector index
-│   ├── subs_meta.jsonl    # Transcript metadata
-│   └── subs.faiss         # Transcript vector index
+│   ├── shots_meta.jsonl   # Image metadata
+│   ├── shots.faiss        # Image vector index
+│   ├── subs_meta.jsonl    # Subtitle metadata
+│   └── subs.faiss         # Subtitle vector index
 └── full_videos/           # Additional videos (excluded from git)
 ```
 
@@ -208,8 +208,8 @@ ivs/
 - **3x storage cost** but much better results
 
 ### Dual-Modal Search
-- **Vision search**: CLIP text→image similarity
-- **Transcript search**: CLIP text→text similarity
+- **Image search**: CLIP text→image similarity
+- **Subtitle search**: CLIP text→text similarity
 - **Adjustable fusion**: Alpha slider controls balance
 - **ASR integration**: Automatic speech recognition
 
