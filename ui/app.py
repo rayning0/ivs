@@ -17,7 +17,9 @@ with st.expander("Process a video"):
     }
 
     selected_video = st.selectbox(
-        "Select video to process:", options=list(video_options.keys()), index=0
+        "Pick video to process. 2 videos from British comedy 'The IT Crowd':",
+        options=list(video_options.keys()),
+        index=0,
     )
 
     vp = video_options[selected_video]
