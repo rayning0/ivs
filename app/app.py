@@ -168,6 +168,7 @@ def search(query: str = Form(...), k: int = Form(8), alpha: float = Form(0.6)):
       - Subtitle index (subtitle/ASR) scored by CLIP(text→text)
     alpha weights image; (1 - alpha) weights subtitles.
     """
+    print(f"🔍 Searched for: '{query}'")
     qvec = embed_text([query])[0]
 
     # Images

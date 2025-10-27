@@ -10,8 +10,17 @@ st.title("In-Video Search")
 st.write("by Raymond Gan, 10/27/2025")
 
 with st.expander("Process a video"):
-    default_video_path = os.path.expanduser("~/ivs/data/videos/episode2.mp4")
-    vp = st.text_input("Video path (on this machine)", default_video_path)
+    # Video selection dropdown
+    video_options = {
+        "episode1.mp4": os.path.expanduser("~/ivs/data/videos/episode1.mp4"),
+        "episode2.mp4": os.path.expanduser("~/ivs/data/videos/episode2.mp4"),
+    }
+
+    selected_video = st.selectbox(
+        "Select video to process:", options=list(video_options.keys()), index=0
+    )
+
+    vp = video_options[selected_video]
 
     # Extract filename as video ID from path
     video_filename = os.path.basename(vp)
@@ -52,10 +61,37 @@ with st.expander("Process a video"):
             st.error(f"❌ Processing failed (Status: {r.status_code})")
             st.write(f"Error: {r.text}")
 
-query = st.text_input(
-    "**Find (dialogue, description, person, object, scene):**",
+# Predefined search examples
+search_examples = [
     '"have you tried turning it off and on again?"',
+    '"they toss us away like yesterday\'s jam"',
+    "woman in elevator",
+    "man with glasses and big hair",
+    "woman walks by red shoes in window",
+    "old woman falls down stairs",
+    "0118999",
+    "tv ad",
+    '"I am declaring war"',
+    '"80 million people"',
+    "trying on shoes",
+]
+
+# Create dropdown with custom input option
+selected_example = st.selectbox(
+    "**Find (dialogue, description, person, object, scene) in all processed videos:**",
+    options=["Type your own search..."] + search_examples,
+    index=0,
 )
+
+# Handle input based on selection
+if selected_example == "Type your own query...":
+    query = st.text_input(
+        "**Enter your search query:**",
+        placeholder="e.g., 'red shoes', 'office workers', 'angry face'",
+        label_visibility="collapsed",
+    )
+else:
+    query = selected_example
 
 col1, col2 = st.columns(2)
 
