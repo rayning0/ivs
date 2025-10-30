@@ -1,13 +1,54 @@
 import glob
 import os
+import socket
 
 import requests
 import streamlit as st
 
-API = "http://localhost:8000"
+
+def detect_environment():
+    """Detect if running on Mac or Nebius VM based on hostname/IP"""
+    try:
+        hostname = socket.gethostname()
+
+        # Are we on Nebius VM?
+        if "computeinstance" in hostname.lower():
+            return "nebius"
+
+        # Check if we can reach the Nebius internal IP
+        test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        test_socket.settimeout(1)
+        result = test_socket.connect_ex(("10.96.0.49", 8000))
+        test_socket.close()
+
+        if result == 0:  # Connection successful
+            return "nebius"
+        else:
+            return "mac"
+
+    except Exception:
+        return "mac"
+
+
+# Set API configuration based on environment
+ENVIRONMENT = detect_environment()
+
+if ENVIRONMENT == "nebius":
+    # Nebius VM configuration
+    API = "http://10.96.0.49:8000"  # Internal IP for API calls
+    THUMBNAIL_BASE = "http://204.12.171.209:8000"  # External IP for thumbnails
+    ENV_LABEL = "🌐 Nebius VM"
+else:
+    # Mac configuration
+    API = "http://localhost:8000"  # Local API
+    THUMBNAIL_BASE = "http://localhost:8000"  # Local thumbnails
+    ENV_LABEL = "💻 Mac"
 
 st.title("In-Video Search")
 st.write("by Raymond Gan, 10/27/2025")
+
+# Show environment indicator
+st.info(f"Running on: {ENV_LABEL} | API: {API} | Thumbnails: {THUMBNAIL_BASE}")
 
 with st.expander("Process a video"):
     # Video selection dropdown
@@ -17,7 +58,7 @@ with st.expander("Process a video"):
     }
 
     selected_video = st.selectbox(
-        "Pick video to process. 2 videos from British comedy 'The IT Crowd':",
+        "Pick video to process. 2 video clips from British comedy 'The IT Crowd':",
         options=list(video_options.keys()),
         index=0,
     )
@@ -148,7 +189,8 @@ if st.button("Search"):
         # Convert absolute path to relative path for Streamlit
         if expanded_path.startswith(os.path.expanduser("~/ivs/data/")):
             relative_path = expanded_path.replace(os.path.expanduser("~/ivs/data/"), "")
-            video_url = f"{API}/static/{relative_path}"
+            # Use THUMBNAIL_BASE for video URLs too (external IP on Nebius)
+            video_url = f"{THUMBNAIL_BASE}/static/{relative_path}"
         else:
             video_url = f"file://{expanded_path}"
 
@@ -177,14 +219,14 @@ if st.button("Search"):
             # Optionally show thumbnail if available
             if item.get("thumb_url"):
                 try:
-                    st.image(f"{API}{item['thumb_url']}")
+                    st.image(f"{THUMBNAIL_BASE}{item['thumb_url']}")
                 except Exception:
                     pass  # Ignore thumbnail errors for exact matches
         elif item.get("thumb_url"):
             # Show thumbnail with fallback
             try:
                 st.image(
-                    f"{API}{item['thumb_url']}",
+                    f"{THUMBNAIL_BASE}{item['thumb_url']}",
                     caption=f"{item['video_id']}  "
                     f"[{format_timestamp(item['start'])}–{format_timestamp(item['end'])}]  "
                     f"score={item['final']:.3f}",
