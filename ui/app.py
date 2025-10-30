@@ -170,26 +170,12 @@ with col2:
     alpha = st.slider("Alpha", 0.0, 1.0, 0.6, 0.1, label_visibility="collapsed")
 
 if st.button("Search"):
-    try:
-        r = requests.post(
-            f"{API}/search", data={"query": query, "k": k, "alpha": alpha}
-        )
-
-        if r.status_code != 200:
-            st.error(f"❌ API Error: {r.status_code} - {r.text}")
-            st.stop()
-
-        search_data = r.json()
-
-        if not search_data.get("results"):
-            st.info("No results yet. Make sure you processed at least one video.")
-            st.stop()
-
-    except Exception as e:
-        st.error(f"❌ Connection Error: {e}")
-        st.stop()
-
-    for item in search_data.get("results", []):
+    r = requests.post(
+        f"{API}/search", data={"query": query, "k": k, "alpha": alpha}
+    ).json()
+    if not r.get("results"):
+        st.info("No results yet. Make sure you processed at least one video.")
+    for item in r.get("results", []):
 
         def format_timestamp(seconds):
             minutes = int(seconds // 60)
@@ -297,91 +283,130 @@ if st.button("Search"):
 
 # Data Management Section
 with st.expander("🗑️ Data Management", expanded=False):
-    st.warning("⚠️ This will delete ALL processed data and clear all caches!")
+    st.warning("⚠️ This will delete ALL processed data!")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("🗑️ Clear All Data", type="secondary"):
+        if st.button("🗑️ Delete All Data", type="secondary"):
             data_dir = os.path.expanduser("~/ivs/data")
-            deleted_count = 0
+            project_dir = os.path.expanduser("~/ivs")
+            deleted_files = []
 
-            # Clear the essential files that affect search
-            try:
-                import shutil
+            # Delete all .jpg files in thumbs directory
+            thumb_files = glob.glob(os.path.join(data_dir, "thumbs", "*.jpg"))
+            for file in thumb_files:
+                try:
+                    os.remove(file)
+                    deleted_files.append(os.path.basename(file))
+                except Exception as e:
+                    st.error(f"Failed to delete {file}: {e}")
 
-                # Clear data directory completely
-                if os.path.exists(data_dir):
-                    shutil.rmtree(data_dir)
-                    os.makedirs(data_dir, exist_ok=True)
-                    os.makedirs(os.path.join(data_dir, "thumbs"), exist_ok=True)
-                    os.makedirs(os.path.join(data_dir, "videos"), exist_ok=True)
-                    deleted_count = 1  # Count as 1 operation
+            # Delete all .jsonl and .faiss files in data directory
+            data_files = glob.glob(os.path.join(data_dir, "*.jsonl")) + glob.glob(
+                os.path.join(data_dir, "*.faiss")
+            )
+            for file in data_files:
+                try:
+                    os.remove(file)
+                    deleted_files.append(os.path.basename(file))
+                except Exception as e:
+                    st.error(f"Failed to delete {file}: {e}")
 
-                # Clear Python caches
-                project_dir = os.path.expanduser("~/ivs")
-                for root, dirs, files in os.walk(project_dir):
-                    for dir_name in dirs:
-                        if dir_name == "__pycache__":
-                            shutil.rmtree(os.path.join(root, dir_name))
-                            deleted_count += 1
+            # Clear Python cache directories
+            import shutil
 
-                if deleted_count > 0:
-                    st.success(f"✅ Cleared all data and caches!")
-                    st.info("🔄 **Next step:** Restart backend server below")
-                else:
-                    st.info("No data found to clear.")
+            cache_dirs = []
+            for root, dirs, files in os.walk(project_dir):
+                for dir_name in dirs:
+                    if dir_name == "__pycache__":
+                        cache_path = os.path.join(root, dir_name)
+                        try:
+                            shutil.rmtree(cache_path)
+                            cache_dirs.append(os.path.relpath(cache_path, project_dir))
+                        except Exception as e:
+                            st.error(f"Failed to delete cache {cache_path}: {e}")
 
-            except Exception as e:
-                st.error(f"❌ Error clearing data: {e}")
+            # Delete .pyc files
+            pyc_files = []
+            for root, dirs, files in os.walk(project_dir):
+                for file in files:
+                    if file.endswith(".pyc"):
+                        pyc_path = os.path.join(root, file)
+                        try:
+                            os.remove(pyc_path)
+                            pyc_files.append(os.path.relpath(pyc_path, project_dir))
+                        except Exception as e:
+                            st.error(f"Failed to delete {pyc_path}: {e}")
+
+            # Delete .DS_Store files (macOS)
+            ds_store_files = []
+            for root, dirs, files in os.walk(project_dir):
+                for file in files:
+                    if file == ".DS_Store":
+                        ds_path = os.path.join(root, file)
+                        try:
+                            os.remove(ds_path)
+                            ds_store_files.append(os.path.relpath(ds_path, project_dir))
+                        except Exception as e:
+                            st.error(f"Failed to delete {ds_path}: {e}")
+
+            # Report results
+            total_deleted = (
+                len(deleted_files)
+                + len(cache_dirs)
+                + len(pyc_files)
+                + len(ds_store_files)
+            )
+            if total_deleted > 0:
+                st.success(f"✅ Deleted {total_deleted} items:")
+
+                if deleted_files:
+                    st.write(f"**Data files ({len(deleted_files)}):**")
+                    for file in deleted_files[:5]:  # Show first 5 files
+                        st.write(f"  • {file}")
+                    if len(deleted_files) > 5:
+                        st.write(f"  • ... and {len(deleted_files) - 5} more files")
+
+                if cache_dirs:
+                    st.write(f"**Python cache directories ({len(cache_dirs)}):**")
+                    for cache_dir in cache_dirs[:3]:
+                        st.write(f"  • {cache_dir}")
+                    if len(cache_dirs) > 3:
+                        st.write(f"  • ... and {len(cache_dirs) - 3} more")
+
+                if pyc_files:
+                    st.write(f"**Python bytecode files ({len(pyc_files)}):**")
+                    for pyc_file in pyc_files[:3]:
+                        st.write(f"  • {pyc_file}")
+                    if len(pyc_files) > 3:
+                        st.write(f"  • ... and {len(pyc_files) - 3} more")
+
+                if ds_store_files:
+                    st.write(f"**System files ({len(ds_store_files)}):**")
+                    for ds_file in ds_store_files[:3]:
+                        st.write(f"  • {ds_file}")
+                    if len(ds_store_files) > 3:
+                        st.write(f"  • ... and {len(ds_store_files) - 3} more")
+            else:
+                st.info("No files found to delete.")
 
     with col2:
-        # Add restart backend button
-        if st.button("🔄 Restart Backend Server", type="primary"):
-            try:
-                import subprocess
-                import time
-
-                st.write("🔄 Restarting backend server...")
-
-                # Kill existing backend processes
-                subprocess.run(["pkill", "-f", "gunicorn"], capture_output=True)
-                time.sleep(2)
-
-                # Start backend server
-                backend_dir = os.path.expanduser("~/ivs/app")
-                result = subprocess.run(
-                    ["./run.sh"],
-                    cwd=backend_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-
-                if result.returncode == 0:
-                    st.success("✅ Backend server restarted successfully!")
-                else:
-                    st.warning(f"⚠️ Backend restart may have issues: {result.stderr}")
-
-            except Exception as e:
-                st.error(f"❌ Failed to restart backend: {e}")
-                st.write(
-                    "💡 **Manual restart:** Run `cd ~/ivs/app && ./run.sh` in terminal"
-                )
-
         st.info(
             """
-        **Simple 2-Step Process:**
-
-        1️⃣ **Clear All Data** - Removes all processed data and caches
-        2️⃣ **Restart Backend** - Fresh server start
-
-        **What gets cleared:**
-        - All thumbnails, search indexes, metadata
-        - Python caches
+        **What gets deleted:**
+        - All thumbnail images (*.jpg)
+        - Search indexes (*.faiss)
+        - Metadata files (*.jsonl)
+        - Python cache directories (__pycache__)
+        - Python bytecode files (*.pyc)
+        - System files (.DS_Store)
 
         **What stays:**
-        - Video files and source code
+        - Video files in /videos/
         - Directory structure
+        - Source code files
+        - Virtual environments
+        - Running servers (backend/frontend)
         """
         )
