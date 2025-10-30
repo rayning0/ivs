@@ -124,7 +124,6 @@ with st.expander("Process a video"):
 # Predefined search examples
 search_examples = [
     '"have you tried turning it off and on again?"',
-    '"they toss us away like yesterday\'s jam"',
     "woman in elevator",
     "man with glasses and big hair",
     "woman walks by red shoes in window",

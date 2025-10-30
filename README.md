@@ -148,7 +148,6 @@ pip install -r requirements.txt
 ### Predefined Search Examples
 The UI now includes a dropdown with common search patterns:
 - `"have you tried turning it off and on again?"` (exact quote)
-- `"they toss us away like yesterday's jam"` (exact quote)
 - `woman in elevator` (visual description)
 - `man with glasses and big hair` (visual description)
 - `woman walks by red shoes in window` (visual description)
