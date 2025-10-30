@@ -1,0 +1,38 @@
+I'm Raymond Gan. We've all seen great moments in movies/TV shows we'd love to see again. But it's hard to quickly find/discover them. It's slow to scroll thru multiple TV episodes or long movies. Maybe you're a video editor, making movie trailers. Or an advertiser checking product placement.
+
+My "In-Video Search" does just that. It search INSIDE multiple videos by speech, situations, characters, objects. It searches BOTH by images + speech, linking them together in common semantic spots call "vector embeddings."
+
+Try it yourself at http://raymond.hopto.org:8501. Search 2 short clips from British comedy "The IT Crowd."
+
+1. Searching by dialogue, IT guys always say:
+“Have you tried turning it off and on again?”
+
+My app finds the exact spot he says that line. The video plays from that exact moment.
+
+2. More tricky: “Woman walks by red shoes in window.”
+
+This needs visual understanding, not speech!
+
+3. Description? “Man with glasses and big hair.”
+
+My app recognizes his visual features. We get results from BOTH episodes 1+2!
+
+4. "TV ad": It knows this is a TV commercial!
+5. “0118999": It understands the phone number image from both screen + speech!
+6. "Trying on shoes": Hilarious!
+⸻
+How does it work?
+
+When you click “Process,” the app breaks a video into shots — chunks between camera cuts.
+
+For each shot, it makes a vector — a numerical fingerprint of what’s happening in the frame.
+
+I use OpenAI's CLIP model to link images to vectors, then Whisper model to link speech to vectors. This links images + text. These vectors get stored in the Facebook AI Similarity Search.
+
+[Open both embedding drawings]
+
+Tuning the sliders.
+
+	•	Top K Nearest Neighbors: # of results you get. Lower K means fewer, better results. Higher K means more, worse results.
+
+	•	Search Importance: To search main for speech, slide lower. To search mainly for speech, slide higher. Or balance both.
