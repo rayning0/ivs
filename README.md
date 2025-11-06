@@ -52,7 +52,9 @@ Useful for viewers to find/jump to favorite scenes, video editors to make movie 
 
 #### Frontend UI (`/ui/`)
 - **Streamlit Interface** ([`app.py`](https://github.com/rayning0/ivs/blob/main/ui/app.py)): Web-based user interface for video upload and search
+- **Environment Detection**: Automatically detects Mac vs Nebius VM and switches configurations
 - **Real-time Results**: Displays search results with thumbnails and timestamps
+- **Cross-Platform**: Works seamlessly on both local development (Mac) and remote deployment (Nebius VM)
 
 ## Tech Stack
 
@@ -124,10 +126,14 @@ pip install -r requirements.txt
 ./run.sh  # Starts Streamlit UI on port 8501
 ```
 
+**Note**: The frontend automatically detects whether it's running on Mac or Nebius VM and configures API endpoints and media URLs accordingly. No manual configuration needed!
+
 ## Usage
 
 1. **Start Backend**: Run the FastAPI server ([`./run.sh`](https://github.com/rayning0/ivs/blob/main/app/run.sh) in `/app/`)
 2. **Start Frontend**: Run Streamlit UI ([`./run.sh`](https://github.com/rayning0/ivs/blob/main/ui/run.sh) in `/ui/`)
+   - The UI automatically detects your environment (Mac or Nebius VM)
+   - API endpoints and media URLs are configured automatically
 3. **Process Video**:
    - Select video from dropdown (episode1.mp4 or episode2.mp4)
    - Adjust shot detection threshold (20-40, default 27)
@@ -156,6 +162,7 @@ The UI now includes a dropdown with common search patterns:
 - `tv ad` (content type)
 - `"I am declaring war"` (exact quote)
 - `"80 million people"` (exact quote)
+- `bike shorts` (visual description)
 - `trying on shoes` (visual description)
 
 ### Visual Queries (Alpha = 1.0)
@@ -247,6 +254,27 @@ ivs/
 - **Full-Size Thumbnails**: Thumbnails display at full resolution
 - **Exact Match Highlighting**: Special badges for exact quote matches
 - **Hybrid GPU/CPU Processing**: CLIP on GPU, Whisper on CPU for stability
+- **Automatic Environment Detection**: Seamlessly works on both Mac (localhost) and Nebius VM (HTTPS proxy)
+- **Unified Codebase**: Single `app.py` file works on both environments with automatic configuration
+- **Smart URL Construction**: Video and thumbnail URLs automatically adapt to environment (local FastAPI vs remote proxy)
+
+## Deployment
+
+### Local Development (Mac)
+- Backend: `http://localhost:8000` (FastAPI direct)
+- Frontend: `http://localhost:8501` (Streamlit)
+- Media: Served via FastAPI `/static` mount
+
+### Remote Deployment (Nebius VM)
+- Backend: `https://raymond.hopto.org/api` (HTTPS proxy via Nginx)
+- Frontend: `https://raymond.hopto.org` (HTTPS)
+- Media: Served directly from `/data` directory
+- **Automatic Detection**: Frontend automatically detects environment and configures URLs
+
+The system uses environment detection based on:
+- Hostname check (looks for "computeinstance" in Nebius VMs)
+- Network connectivity test (checks for Nebius internal IP)
+- Falls back to Mac configuration if detection fails
 
 ## Development
 
@@ -256,3 +284,4 @@ Built for hackathon demonstration with focus on:
 - Scalable architecture for future enhancements
 - Easy deployment and setup
 - Production-ready features (multi-frame pooling, dual-modal search)
+- Cross-platform compatibility (Mac and Nebius VM)
