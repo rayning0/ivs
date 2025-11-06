@@ -2,7 +2,7 @@ I'm Raymond Gan. We've all seen great moments in movies/TV shows we'd love to se
 
 My "In-Video Search" does just that. It search INSIDE multiple videos by speech, situations, characters, objects. It searches BOTH by images + speech, linking them together in common semantic spots call "vector embeddings."
 
-Try it yourself at http://raymond.hopto.org:8501. Search 2 short clips from British comedy "The IT Crowd."
+Try it yourself at https://raymond.hopto.org. Search 2 short clips from British comedy "The IT Crowd."
 
 1. Searching by dialogue, IT guys always say:
 “Have you tried turning it off and on again?”
