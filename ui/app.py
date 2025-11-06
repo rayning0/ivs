@@ -6,6 +6,10 @@ import requests
 import streamlit as st
 
 
+def join_url(base, *parts):
+    return "/".join([base.rstrip("/")] + [p.strip("/") for p in parts])
+
+
 def detect_environment():
     """Detect if running on Mac or Nebius VM based on hostname/IP"""
     try:
@@ -35,13 +39,13 @@ ENVIRONMENT = detect_environment()
 
 if ENVIRONMENT == "nebius":
     # Nebius VM configuration
-    API = "http://10.96.0.49:8000"  # Internal IP for API calls
-    THUMBNAIL_BASE = "http://204.12.171.209:8000"  # External IP for thumbnails
+    API = "https://raymond.hopto.org/api"  # Use HTTPS
+    THUMBNAIL_BASE = "https://raymond.hopto.org/data"
     ENV_LABEL = "🌐 Nebius VM"
 else:
     # Mac configuration
-    API = "http://localhost:8000"  # Local API
-    THUMBNAIL_BASE = "http://localhost:8000"  # Local thumbnails
+    API = "http://localhost:8000"  # Local dev hits FastAPI directly
+    THUMBNAIL_BASE = "http://localhost:8000/static"  # Local thumbnails
     ENV_LABEL = "💻 Mac"
 
 st.title("In-Video Search")
@@ -132,6 +136,7 @@ search_examples = [
     "tv ad",
     '"I am declaring war"',
     '"80 million people"',
+    "bike shorts",
     "trying on shoes",
 ]
 
@@ -185,11 +190,13 @@ if st.button("Search"):
         video_path = item.get("video_path", f"~/ivs/data/videos/{item['video_id']}.mp4")
         expanded_path = os.path.expanduser(video_path)
 
-        # Convert absolute path to relative path for Streamlit
+        # Convert absolute path to relative path under ~/ivs/data/
         if expanded_path.startswith(os.path.expanduser("~/ivs/data/")):
             relative_path = expanded_path.replace(os.path.expanduser("~/ivs/data/"), "")
-            # Use THUMBNAIL_BASE for video URLs too (external IP on Nebius)
-            video_url = f"{THUMBNAIL_BASE}/static/{relative_path}"
+            # Works on both envs:
+            #  - Nebius: https://.../data/<videos/...>
+            #  - Mac:    http://localhost:8000/static/<videos/...>
+            video_url = join_url(THUMBNAIL_BASE, relative_path)
         else:
             video_url = f"file://{expanded_path}"
 
@@ -218,14 +225,28 @@ if st.button("Search"):
             # Optionally show thumbnail if available
             if item.get("thumb_url"):
                 try:
-                    st.image(f"{THUMBNAIL_BASE}{item['thumb_url']}")
+                    # Backend returns: /static/thumbs/... but THUMBNAIL_BASE already includes the path
+                    # Mac: THUMBNAIL_BASE = "http://localhost:8000/static", need "thumbs/..."
+                    # Nebius: THUMBNAIL_BASE = "https://raymond.hopto.org/data", need "thumbs/..."
+                    thumb_path = item["thumb_url"].lstrip("/")
+                    if thumb_path.startswith("static/"):
+                        thumb_path = thumb_path[7:]  # Remove "static/" prefix
+                    thumb_url = join_url(THUMBNAIL_BASE, thumb_path)
+                    st.image(thumb_url)
                 except Exception:
                     pass  # Ignore thumbnail errors for exact matches
         elif item.get("thumb_url"):
             # Show thumbnail with fallback
+            # Backend returns: /static/thumbs/... but THUMBNAIL_BASE already includes the path
+            # Mac: THUMBNAIL_BASE = "http://localhost:8000/static", need "thumbs/..."
+            # Nebius: THUMBNAIL_BASE = "https://raymond.hopto.org/data", need "thumbs/..."
+            thumb_path = item["thumb_url"].lstrip("/")
+            if thumb_path.startswith("static/"):
+                thumb_path = thumb_path[7:]  # Remove "static/" prefix
+            thumb_url = join_url(THUMBNAIL_BASE, thumb_path)
             try:
                 st.image(
-                    f"{THUMBNAIL_BASE}{item['thumb_url']}",
+                    thumb_url,
                     caption=f"{item['video_id']}  "
                     f"[{format_timestamp(item['start'])}–{format_timestamp(item['end'])}]  "
                     f"score={item['final']:.3f}",
