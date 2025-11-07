@@ -1,5 +1,6 @@
 # In-Video Search System
-### by Raymond Gan. Try it at https://raymond.hopto.org
+### by Raymond Gan. Try it at https://raymond.hopto.org.
+#### (To save money, this site only runs when I turn on Nebius VM.)
 
 A semantic video search system to let you find and play specific moments in videos with natural language queries. You may search by dialogue, descriptions, people, objects, or scenes. Built for [Tubi](https://tubi.tv)'s 2025 hackathon with FastAPI backend and Streamlit frontend, in Python. I used these AI models: OpenAI [CLIP](https://openai.com/index/clip/) for images, OpenAI [Whisper](https://openai.com/index/whisper/) for speech recognition, and [FAISS (Facebook AI Similarity Search)](https://www.pinecone.io/learn/series/faiss/faiss-tutorial/) for vector embeddings.
 
