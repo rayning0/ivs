@@ -1,10 +1,17 @@
 # In-Video Search System
-### by Raymond Gan. Try it at https://raymond.hopto.org.
-#### (To save money, this site only runs when I turn on Nebius VM.)
+### by Raymond Gan. See [YouTube video](https://www.youtube.com/watch?v=HM2WybZwpxM) of my demo. Try it at https://raymond.hopto.org.
+#### (To save money, my site only runs when I turn on Nebius VM.)
 
-A semantic video search system to let you find and play specific moments in videos with natural language queries. You may search by dialogue, descriptions, people, objects, or scenes. Built for [Tubi](https://tubi.tv)'s 2025 hackathon with FastAPI backend and Streamlit frontend, in Python. I used these AI models: OpenAI [CLIP](https://openai.com/index/clip/) for images, OpenAI [Whisper](https://openai.com/index/whisper/) for speech recognition, and [FAISS (Facebook AI Similarity Search)](https://www.pinecone.io/learn/series/faiss/faiss-tutorial/) for vector embeddings.
 
-Useful for viewers to find/jump to favorite scenes, video editors to make movie trailers/social media clips, and advertisers to jump to specific ad products.
+Inspired by [Netflix's In-Video Search System](https://netflixtechblog.com/building-in-video-search-936766f0017c), I built my own in 3 days at [Tubi's](https://tubi.tv) Oct. 2025 company hackathon.
+
+It's a semantic video search system to let you quickly find and play specific moments in videos with natural language queries. You may search multiple videos by dialogue, descriptions, people, objects, or scenes.
+
+Built in Python with FastAPI backend and Streamlit frontend. I used these AI models: OpenAI [CLIP](https://openai.com/index/clip/) for images, OpenAI [Whisper](https://openai.com/index/whisper/) for speech recognition, and [FAISS (Facebook AI Similarity Search)](https://www.pinecone.io/learn/series/faiss/faiss-tutorial/) for vector embeddings.
+
+Viewers may use this to quickly find/jump to favorite scenes, video editors to make movie trailers/social media clips, and advertisers to jump to specific ad products in videos. Content moderators or standards and practices lawyers could use this to quickly find objectionable content.
+
+[![Click to see demo video](https://github.com/rayning0/ivs/blob/main/thumb_for_video.png)](https://www.youtube.com/watch?v=HM2WybZwpxM)
 
 ## Features
 
