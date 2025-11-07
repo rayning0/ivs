@@ -11,6 +11,8 @@ Built in Python with FastAPI backend and Streamlit frontend. I used these AI mod
 
 Viewers may use this to quickly find/jump to favorite scenes, video editors to make movie trailers/social media clips, and advertisers to jump to specific ad products in videos. Content moderators or standards and practices lawyers could use this to quickly find objectionable content.
 
+My project got voted by my coworkers in the top 18 projects out of 62!
+
 [![Click to see demo video](https://github.com/rayning0/ivs/blob/main/thumb_for_video.png)](https://www.youtube.com/watch?v=HM2WybZwpxM)
 
 ## Features
