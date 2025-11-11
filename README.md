@@ -1,5 +1,5 @@
 # In-Video Search System
-### by Raymond Gan. See [YouTube video](https://www.youtube.com/watch?v=HM2WybZwpxM) of my demo. Try it at https://raymond.hopto.org.
+### by Raymond Gan. See [YouTube video](https://youtu.be/NrETEo9I7Cg) of my demo. Try it at https://raymond.hopto.org.
 #### (To save money, my site only runs when I turn on Nebius VM.)
 
 
