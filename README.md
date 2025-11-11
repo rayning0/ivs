@@ -13,7 +13,7 @@ Viewers may use this to quickly find/jump to favorite scenes, video editors to m
 
 My project got voted by my coworkers in the top 18 projects out of 62!
 
-[![Click to see demo video](https://github.com/rayning0/ivs/blob/main/thumb_for_video.png)](https://www.youtube.com/watch?v=HM2WybZwpxM)
+[![Click to see demo video](https://github.com/rayning0/ivs/blob/main/thumb_for_video.png)](https://youtu.be/NrETEo9I7Cg)
 
 ## Features
 
