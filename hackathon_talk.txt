@@ -1,38 +1,56 @@
-I'm Raymond Gan. We've all seen great moments in movies/TV shows we'd love to see again. But it's hard to quickly find/discover them. It's slow to scroll thru multiple TV episodes or long movies. Maybe you're a video editor, making movie trailers. Or an advertiser checking product placement.
+I'm Raymond Gan. We've all seen great moments in movies/TV shows we'd love to see again. But it's hard to quickly find/discover them. It's slow to scroll through multiple TV episodes or long movies. Maybe you're a video editor, making movie trailers or social media clips. Or an advertiser checking product placement. Or you're a content moderator/lawyer who must search for objectionable content.
 
-My "In-Video Search" does just that. It search INSIDE multiple videos by speech, situations, characters, objects. It searches BOTH by images + speech, linking them together in common semantic spots call "vector embeddings."
+My "In-Video Search System" does just that. Inspired by Netflix's tech blog on their own In-Video Search for their video editors, I built my own in 3 days at Tubi's Oct. 2025 company hackathon. You can search INSIDE multiple videos by dialogue, descriptions, people, objects, or scenes. You can search by speech, by images, or by a combo of both, in a search that understands context, linking images + speech together in semantic spots called "vector embeddings."
 
-Try it yourself at https://raymond.hopto.org. Search 2 short clips from British comedy "The IT Crowd."
+Try it yourself at https://raymond.hopto.org.
 
-1. Searching by dialogue, IT guys always say:
-“Have you tried turning it off and on again?”
+I processed 2 short videos from season 1, episodes 1 + 2, of British comedy "The IT Crowd." It's my favorite comedy on IT people.
 
-My app finds the exact spot he says that line. The video plays from that exact moment.
+1. IT guys always say: "Have you tried turning it off and on again?" Let's search for this direct dialogue quote.
+My app finds + plays the video from that exact moment. It's from episode 1.
 
-2. More tricky: “Woman walks by red shoes in window.”
+2. Let's try a visual description: "Woman in elevator."
 
-This needs visual understanding, not speech!
+3. More tricky: “Woman walks by red shoes in window.” This search needed visual understanding + context, not speech! This is from episode 2.
 
-3. Description? “Man with glasses and big hair.”
+4. "Old woman falls down stairs."
 
-My app recognizes his visual features. We get results from BOTH episodes 1+2!
+5. "TV ad": It knows this is a TV commercial!
 
-4. "TV ad": It knows this is a TV commercial!
-5. “0118999": It understands the phone number image from both screen + speech!
-6. "Trying on shoes": Hilarious!
+6. “0118999": Let's search the phone number from the TV ad. It understands the phone number from both images + speech!
+
+7. Another direct quote: "I am declaring war"
+
+8. More visual description: "Trying on shoes." Hilarious!
 ⸻
 How does it work?
 
-When you click “Process,” the app breaks a video into shots — chunks between camera cuts.
+When you “Process a Video,” my app intelligently breaks a video into shots. 1 shot is a few seconds of video. A scene is made of several shots. For better search results, my code saves 3 images per shot, called "Multi-Frame Pooling," which Netflix also does. With the Nvidia GPU chip, processing a 6 min clip takes 35 seconds.
 
-For each shot, it makes a vector — a numerical fingerprint of what’s happening in the frame.
+Before video processing, you may pick a "Shot Detection Threshold." Lower means it's very sensitive and takes many short shots. Higher means it's less sensitive and takes fewer, longer shots.
 
-I use OpenAI's CLIP model to link images to vectors, then Whisper model to link speech to vectors. This links images + text. These vectors get stored in the Facebook AI Similarity Search.
+For each shot, it makes a vector — a numerical fingerprint of what’s happening in the frame. A vector is a list of numbers.
 
-[Open both embedding drawings]
+[OpenAI CLIP embedding diagram]
+
+I use OpenAI's CLIP model to link images to vectors. Then OpenAI's Whisper model to link speech to vectors. This links images + text. These vectors get stored in the Facebook AI Similarity Search, or FAISS.
+
+These "embeddings" let us compare similarity scores between text + images for 1 item with text + images for another item.
+
+[Cosine similarity graph]
+
+Let's say this photo + text for "large dining table" and "fax machine" go here in this embedding graph.
+
+Then we get a photo + text for "big room with a table". Where does that map in this embedding graph? Closer to the photo + text for the first table. Note the angle between the vectors of these 2 tables is closer in this graph than between vectors for a table and a fax machine.
+
+It's called checking "cosine similarity." This is how we know 1 image/text in our vector embedding is a better result for our search!
 
 Tuning the sliders.
 
 	•	Top K Nearest Neighbors: # of results you get. Lower K means fewer, better results. Higher K means more, worse results.
 
-	•	Search Importance: To search main for speech, slide lower. To search mainly for speech, slide higher. Or balance both.
+	•	Search Importance (alpha value): To search main for speech, slide lower. To search mainly for speech, slide higher. Or balance both.
+
+My coworkers voted my project in the top 18 out of 62 projects at our hackathon!
+
+If my website doesn't play now, it's to save money. I set up a Nebius virtual machine to run it in the cloud on an Nvidia H200 GPU. Nebius charges me hourly to run its VM, so I only run it and my site for demos.
